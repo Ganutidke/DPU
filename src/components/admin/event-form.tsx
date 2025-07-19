@@ -42,7 +42,7 @@ interface EventFormProps {
 export function EventForm({ event, onSubmit, onClose }: EventFormProps) {
   const defaultValues: Partial<EventFormValues> = event
     ? { ...event, date: new Date(event.date) }
-    : { category: "Academic" };
+    : { category: "Academic", description: "" };
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),

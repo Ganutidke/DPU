@@ -36,7 +36,11 @@ interface ProjectFormProps {
 }
 
 export function ProjectForm({ project, onSubmit, onClose }: ProjectFormProps) {
-  const defaultValues: Partial<ProjectFormValues> = project || { category: "Technology" };
+  const defaultValues: Partial<ProjectFormValues> = project || { 
+    category: "Technology",
+    description: "",
+    imageUrl: "",
+  };
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
