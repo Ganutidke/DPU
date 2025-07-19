@@ -36,7 +36,6 @@ export function MainNav() {
                 <SidebarMenuButton
                   isActive={pathname === item.href}
                   tooltip={item.label}
-                  asChild
                 >
                   <item.icon />
                   <span>{item.label}</span>
