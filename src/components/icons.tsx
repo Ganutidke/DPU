@@ -4,16 +4,37 @@ export const Icons = {
   logo: (props: SVGProps<SVGSVGElement>) => (
     <svg 
       xmlns="http://www.w3.org/2000/svg" 
-      viewBox="0 0 200 200"
+      viewBox="0 0 400 150"
       {...props}>
-      <defs>
-        <style>{`.cls-1{fill:#c8102e;}.cls-2{fill:#f1be48;}`}</style>
-      </defs>
-      <path className="cls-1" d="M165.7,50.31v50c-15.42,0-27.9,12.48-27.9,27.9s12.48,27.9,27.9,27.9h0v16.1H34.3V50.31Z"/>
-      <path className="cls-2" d="M100.23,37.36a28.06,28.06,0,0,0-28,27.9,27.75,27.75,0,0,0,6.1,17.4c5.4,6,13,9.8,21.9,9.8s16.5-3.8,21.9-9.8a27.75,27.75,0,0,0,6.1-17.4A28,28,0,0,0,100.23,37.36Z"/>
-      <path className="cls-2" d="M165.7,34.3v.4h0a27.9,27.9,0,1,0,0,55.8h0v.4h-16.1a27.75,27.75,0,0,0-9.8-21.9c-6-5.4-9.8-13-9.8-21.9s3.8-16.5,9.8-21.9a27.75,27.75,0,0,0,9.8-21.9Z"/>
-      <path className="cls-1" d="M100,50.31A15,15,0,1,1,85,65.28,15,15,0,0,1,100,50.31Z"/>
-      <path className="cls-1" d="M150.7,50.31a15,15,0,1,0,15,15A15,15,0,0,0,150.7,50.31Z"/>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap');
+        .maroon { fill: #800000; }
+        .gold { fill: #D4AF37; }
+        .main-text { font-family: 'Times New Roman', serif; font-size: 60px; font-weight: bold; fill: #800000; }
+        .sub-text { font-family: 'Times New Roman', serif; font-size: 16px; font-weight: bold; fill: #800000; }
+      `}</style>
+      
+      {/* <!-- Left Swoosh and Stars --> */}
+      <g transform="translate(40, 40)">
+        <path d="M0,15 Q30,-15 60,10" stroke="#D4AF37" strokeWidth="2.5" fill="none" />
+        <path d="M0,20 Q35,-5 70,20" stroke="#D4AF37" strokeWidth="2.5" fill="none" />
+        <polygon points="55,-8 57,-2 63,-2 58,2 60,8 55,4 50,8 52,2 47,-2 53,-2" className="maroon" />
+      </g>
+      
+      {/* <!-- Right Swoosh and Stars --> */}
+      <g transform="translate(230, 40)">
+        <path d="M0,15 Q30,-15 60,10" stroke="#D4AF37" strokeWidth="2.5" fill="none" />
+        <path d="M0,20 Q35,-5 70,20" stroke="#D4AF37" strokeWidth="2.5" fill="none" />
+        <polygon points="55,-8 57,-2 63,-2 58,2 60,8 55,4 50,8 52,2 47,-2 53,-2" className="maroon" />
+      </g>
+      
+      {/* <!-- Main Text --> */}
+      <text x="50%" y="90" textAnchor="middle" className="main-text">DYP DPU</text>
+      
+      {/* <!-- Bottom Line and Text --> */}
+      <line x1="20" y1="115" x2="380" y2="115" stroke="#D4AF37" strokeWidth="2" />
+      <circle cx="200" cy="115" r="3" className="maroon" />
+      <text x="50%" y="135" textAnchor="middle" className="sub-text">Dr. D. Y. Patil Unitech Society</text>
     </svg>
   ),
 };
