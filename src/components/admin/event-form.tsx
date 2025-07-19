@@ -1,11 +1,13 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon, PlusCircle, X } from "lucide-react"
+import { Calendar as CalendarIcon, PlusCircle, X, Upload } from "lucide-react"
 import Image from "next/image"
+import React from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -33,7 +35,7 @@ const eventFormSchema = z.object({
   type: z.enum(["Workshop", "Seminar", "Social", "Sports"]),
   year: z.enum(["All", "Freshman", "Sophomore", "Junior", "Senior"]),
   academicYear: z.enum(["2024-2025", "2023-2024"]),
-  images: z.array(z.object({ url: z.string().url("Must be a valid URL.") })).min(1, "At least one image is required."),
+  images: z.array(z.object({ url: z.string().url("Must be a valid URL or data URI.") })).min(1, "At least one image is required."),
   links: z.array(z.object({ title: z.string().min(1), url: z.string().url() })).optional(),
 });
 
@@ -46,6 +48,8 @@ interface EventFormProps {
 }
 
 export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const defaultValues: Partial<EventFormValues> = event
     ? { 
         ...event,
@@ -77,6 +81,23 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
     name: "links",
     control: form.control,
   });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            appendImage({ url: reader.result });
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
 
   const handleSubmit = (data: EventFormValues) => {
     onSubmit({
@@ -234,34 +255,33 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         <Card>
           <CardHeader>
             <CardTitle>Event Images</CardTitle>
-            <CardDescription>Add URLs for images to show in the event gallery.</CardDescription>
+            <CardDescription>Add images by URL or upload them from your device.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {imageFields.map((field, index) => (
                 <div key={field.id} className="relative group aspect-video">
-                  <FormField
-                    control={form.control}
-                    name={`images.${index}.url`}
-                    render={({ field: imageField }) => (
-                      <FormItem className="h-full">
-                        <FormControl>
-                           <div className="h-full w-full">
-                            <Input {...imageField} placeholder="https://placehold.co/800x600.png" className="h-full" />
-                            {imageField.value && (
-                                <Image
-                                    src={imageField.value}
-                                    alt={`Preview ${index + 1}`}
-                                    fill
-                                    className="object-cover rounded-md pointer-events-none"
-                                    onError={(e) => e.currentTarget.style.display = 'none'}
-                                />
-                            )}
-                           </div>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                        control={form.control}
+                        name={`images.${index}.url`}
+                        render={({ field: imageField }) => (
+                        <FormItem className="h-full">
+                            <FormControl>
+                                <div className="h-full w-full">
+                                    <Input {...imageField} placeholder="https://placehold.co/800x600.png" className="h-full" />
+                                    {imageField.value && (
+                                        <Image
+                                            src={imageField.value}
+                                            alt={`Preview ${index + 1}`}
+                                            fill
+                                            className="object-cover rounded-md pointer-events-none"
+                                        />
+                                    )}
+                                </div>
+                            </FormControl>
+                        </FormItem>
+                        )}
+                    />
                   <Button
                     type="button"
                     variant="destructive"
@@ -273,17 +293,36 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                   </Button>
                 </div>
               ))}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-full flex flex-col items-center justify-center aspect-video"
-                onClick={() => appendImage({ url: '' })}
-              >
-                <PlusCircle className="h-8 w-8 text-muted-foreground" />
-                <span className="mt-2 text-sm text-muted-foreground">Add Image</span>
-              </Button>
+              <div className="flex flex-col gap-2 aspect-video">
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-full flex flex-col items-center justify-center"
+                    onClick={() => appendImage({ url: '' })}
+                    >
+                    <PlusCircle className="h-8 w-8 text-muted-foreground" />
+                    <span className="mt-2 text-sm text-muted-foreground">Add by URL</span>
+                </Button>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                />
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-full flex flex-col items-center justify-center"
+                    onClick={() => fileInputRef.current?.click()}
+                    >
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <span className="mt-2 text-sm text-muted-foreground">Upload</span>
+                </Button>
+              </div>
             </div>
-             {form.formState.errors.images && <p className="text-sm font-medium text-destructive">{form.formState.errors.images.message}</p>}
+             {form.formState.errors.images && <p className="text-sm font-medium text-destructive">{form.formState.errors.images?.root?.message || form.formState.errors.images.message}</p>}
           </CardContent>
         </Card>
         
@@ -295,3 +334,5 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
     </Form>
   )
 }
+
+    

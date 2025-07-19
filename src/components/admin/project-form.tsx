@@ -1,10 +1,12 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
-import { PlusCircle, X } from "lucide-react"
+import { PlusCircle, X, Upload } from "lucide-react"
 import Image from "next/image"
+import React from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -30,7 +32,7 @@ const projectFormSchema = z.object({
   class: z.string().min(2, "Class/Course is required."),
   year: z.coerce.number().min(2000).max(new Date().getFullYear() + 1),
   academicYear: z.enum(["2024-2025", "2023-2024"]),
-  images: z.array(z.object({ url: z.string().url("Must be a valid URL.") })).min(1, "At least one image is required."),
+  images: z.array(z.object({ url: z.string().url("Must be a valid URL or data URI.") })).min(1, "At least one image is required."),
   liveLink: z.string().url().optional().or(z.literal('')),
   otherLinks: z.array(z.object({ title: z.string().min(1), url: z.string().url() })).optional(),
 });
@@ -45,6 +47,8 @@ interface ProjectFormProps {
 }
 
 export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const defaultValues: Partial<ProjectFormValues> = project
     ? {
         ...project,
@@ -79,6 +83,22 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
     name: "images",
     control: form.control,
   });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            appendImage({ url: reader.result });
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
 
   const handleSubmit = (data: ProjectFormValues) => {
     onSubmit({
@@ -234,7 +254,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                         </Button>
                     </div>
                 ))}
-                 {form.formState.errors.students && <p className="text-sm font-medium text-destructive">{form.formState.errors.students.message}</p>}
+                 {form.formState.errors.students && <p className="text-sm font-medium text-destructive">{form.formState.errors.students?.root?.message || form.formState.errors.students.message}</p>}
 
                 <Button
                     type="button"
@@ -251,7 +271,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         <Card>
           <CardHeader>
             <CardTitle>Project Images</CardTitle>
-            <CardDescription>Add URLs for images to show in the project gallery.</CardDescription>
+            <CardDescription>Add images by URL or upload them from your device.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -263,18 +283,17 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                     render={({ field: imageField }) => (
                        <FormItem className="h-full">
                         <FormControl>
-                           <div className="h-full w-full">
-                            <Input {...imageField} placeholder="https://placehold.co/800x600.png" className="h-full" />
-                            {imageField.value && (
-                                <Image
-                                    src={imageField.value}
-                                    alt={`Preview ${index + 1}`}
-                                    fill
-                                    className="object-cover rounded-md pointer-events-none"
-                                    onError={(e) => e.currentTarget.style.display = 'none'}
-                                />
-                            )}
-                           </div>
+                            <div className="h-full w-full">
+                                <Input {...imageField} placeholder="https://placehold.co/800x600.png" className="h-full" />
+                                {imageField.value && (
+                                    <Image
+                                        src={imageField.value}
+                                        alt={`Preview ${index + 1}`}
+                                        fill
+                                        className="object-cover rounded-md pointer-events-none"
+                                    />
+                                )}
+                            </div>
                         </FormControl>
                       </FormItem>
                     )}
@@ -290,17 +309,36 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                   </Button>
                 </div>
               ))}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-full flex flex-col items-center justify-center aspect-video"
-                onClick={() => appendImage({ url: '' })}
-              >
-                <PlusCircle className="h-8 w-8 text-muted-foreground" />
-                <span className="mt-2 text-sm text-muted-foreground">Add Image</span>
-              </Button>
+              <div className="flex flex-col gap-2 aspect-video">
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-full flex flex-col items-center justify-center"
+                    onClick={() => appendImage({ url: '' })}
+                    >
+                    <PlusCircle className="h-8 w-8 text-muted-foreground" />
+                    <span className="mt-2 text-sm text-muted-foreground">Add by URL</span>
+                </Button>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                />
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-full flex flex-col items-center justify-center"
+                    onClick={() => fileInputRef.current?.click()}
+                    >
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <span className="mt-2 text-sm text-muted-foreground">Upload</span>
+                </Button>
+              </div>
             </div>
-            {form.formState.errors.images && <p className="text-sm font-medium text-destructive">{form.formState.errors.images.message}</p>}
+            {form.formState.errors.images && <p className="text-sm font-medium text-destructive">{form.formState.errors.images?.root?.message || form.formState.errors.images.message}</p>}
           </CardContent>
         </Card>
         
@@ -312,3 +350,5 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
     </Form>
   )
 }
+
+    
