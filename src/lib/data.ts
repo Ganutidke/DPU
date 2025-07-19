@@ -45,3 +45,23 @@ export interface Event {
     { id: 'p6', title: 'Short Film: "The Commute"', students: ['Olivia Blue'], description: 'A short, animated film about the daily lives of city dwellers, told through a series of interconnected vignettes. The film was created using a combination of 2D and 3D animation techniques.', images: ['https://placehold.co/800x600.png', 'https://placehold.co/800x600.png'], category: 'Arts', class: 'ART202', year: 2024, academicYear: '2024-2025', liveLink: '#', date: 'March 18, 2024' },
   ];
   
+  // Note: The following types and data were previously in 'lib/types.ts' and 'lib/mock-data.ts'
+  // They are kept here for reference but the interfaces above are now the single source of truth.
+  
+  export type AdminEvent = {
+    id: string;
+    title: string;
+    date: string;
+    description: string;
+    category: 'Academic' | 'Social' | 'Workshop' | 'Career';
+  };
+
+  export type AdminProject = {
+    id: string;
+    title: string;
+    student: string;
+    year: number;
+    category: 'Technology' | 'Art' | 'Science' | 'Business';
+    description: string;
+    imageUrl: string;
+  };
