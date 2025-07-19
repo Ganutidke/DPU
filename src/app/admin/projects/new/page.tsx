@@ -2,11 +2,9 @@
 import { ProjectForm } from "@/components/admin/project-form";
 import { useToast } from "@/hooks/use-toast";
 import type { Project } from "@/lib/data";
-import { useRouter } from "next/navigation";
 import { createProject } from "../actions";
 
 export default function NewProjectPage() {
-    const router = useRouter();
     const { toast } = useToast();
 
     const handleFormSubmit = async (data: Project) => {
@@ -34,7 +32,7 @@ export default function NewProjectPage() {
                 </div>
                 <ProjectForm
                     onSubmit={handleFormSubmit}
-                    onCancel={() => router.push('/admin')}
+                    onCancelPath="/admin"
                 />
             </div>
         </div>

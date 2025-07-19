@@ -2,12 +2,10 @@
 import { EventForm } from "@/components/admin/event-form";
 import { useToast } from "@/hooks/use-toast";
 import type { Event } from "@/lib/data";
-import { useRouter } from "next/navigation";
 import { createEvent } from "../actions";
 
 
 export default function NewEventPage() {
-    const router = useRouter();
     const { toast } = useToast();
 
     const handleFormSubmit = async (data: Event) => {
@@ -35,7 +33,7 @@ export default function NewEventPage() {
                 </div>
                 <EventForm 
                     onSubmit={handleFormSubmit}
-                    onCancel={() => router.push('/admin')}
+                    onCancelPath="/admin"
                 />
             </div>
         </div>

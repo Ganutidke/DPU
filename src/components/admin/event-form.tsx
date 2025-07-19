@@ -39,7 +39,7 @@ const eventFormSchema = z.object({
   year: z.enum(["All", "Freshman", "Sophomore", "Junior", "Senior"]),
   academicYear: z.string({required_error: "Please select an academic year."}),
   images: z.array(z.object({ url: z.string().url("Must be a valid URL or data URI.") })).min(1, "At least one image is required."),
-  links: z.array(z.object({ title: z.string().min(1), url: z.string().url() })).optional(),
+  links: z.array(z.object({ title: z.string().min(1, "Link title cannot be empty."), url: z.string().url("Must be a valid URL.") })).optional(),
 });
 
 type EventFormValues = z.infer<typeof eventFormSchema>
@@ -351,6 +351,63 @@ export function EventForm({ event, onSubmit, onCancelPath }: EventFormProps) {
             </div>
              {form.formState.errors.images && <p className="text-sm font-medium text-destructive">{form.formState.errors.images?.root?.message || form.formState.errors.images.message}</p>}
           </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="capitalize">More Info Links</CardTitle>
+                <CardDescription>Add any relevant links for the event (e.g., registration, brochure).</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 {linkFields.map((field, index) => (
+                    <div key={field.id} className="flex items-start gap-4">
+                         <FormField
+                            control={form.control}
+                            name={`links.${index}.title`}
+                            render={({ field }) => (
+                                <FormItem className="flex-1">
+                                    <FormLabel className="sr-only">Title</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Link Title (e.g. Registration)" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name={`links.${index}.url`}
+                            render={({ field }) => (
+                                <FormItem className="flex-1">
+                                    <FormLabel className="sr-only">URL</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="https://example.com" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="mt-2"
+                            onClick={() => removeLink(index)}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ))}
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendLink({ title: '', url: '' })}
+                >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Link
+                </Button>
+            </CardContent>
         </Card>
         
         <div className="flex justify-end gap-2">
