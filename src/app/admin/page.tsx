@@ -10,7 +10,7 @@ export default function AdminPage() {
   return (
     <div className="container mx-auto py-8 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight capitalize">Admin Dashboard</h1>
+        <h1 className="text-4xl font-bold tracking-tight capitalize font-headline text-primary">Admin Dashboard</h1>
         <p className="text-muted-foreground">Manage your campus events and student projects.</p>
       </div>
       <Tabs defaultValue="events" className="w-full">
