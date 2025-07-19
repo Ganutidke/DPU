@@ -12,7 +12,7 @@ export function ProjectCard({ project, onCardClick }: { project: Project; onCard
     >
       <div className="relative w-full aspect-video">
         <Image
-          src={project.images[0]}
+          src={project.images[0] || 'https://placehold.co/800x600.png'}
           alt={`Image for ${project.title}`}
           fill
           className="object-cover"

@@ -3,21 +3,26 @@ import { ProjectForm } from "@/components/admin/project-form";
 import { useToast } from "@/hooks/use-toast";
 import type { Project } from "@/lib/data";
 import { useRouter } from "next/navigation";
-import { useLocalStorage } from "@/hooks/use-local-storage";
-import { projects as defaultProjects } from "@/lib/data";
+import { createProject } from "../actions";
 
 export default function NewProjectPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const [projects, setProjects] = useLocalStorage<Project[]>('projects', defaultProjects);
 
-    const handleFormSubmit = (data: Project) => {
-        setProjects([...projects, data]);
-        toast({
-            title: "Project Created",
-            description: "The new project has been successfully created.",
-        });
-        router.push('/admin');
+    const handleFormSubmit = async (data: Project) => {
+         try {
+            await createProject(data);
+            toast({
+                title: "Project Created",
+                description: "The new project has been successfully created.",
+            });
+        } catch (error) {
+             toast({
+                title: "Error",
+                description: "Failed to create project. Please try again.",
+                variant: "destructive"
+            });
+        }
     };
 
     return (

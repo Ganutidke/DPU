@@ -1,4 +1,3 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -6,7 +5,7 @@ import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
 import { PlusCircle, X, Upload } from "lucide-react"
 import Image from "next/image"
-import React from "react"
+import React, { useState, useTransition, useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,15 +20,15 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Project, ProjectCategory, AcademicYear } from "@/lib/data"
-import { projectCategories as defaultCategories, academicYears as defaultAcademicYears } from "@/lib/data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { format } from "date-fns"
-import { useLocalStorage } from "@/hooks/use-local-storage"
+import { getProjectCategories, getAcademicYears } from "./data-actions"
+import { useToast } from "@/hooks/use-toast"
 
 const projectFormSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters.").max(100),
   students: z.array(z.object({ name: z.string().min(2, "Student name is required.") })).min(1, "At least one student is required."),
-  description: z.string().max(1000).min(10),
+  description: z.string().max(1000, "Description must be 1000 characters or less.").min(10),
   category: z.string({required_error: "Please select a category."}),
   class: z.string().min(2, "Class/Course is required."),
   year: z.coerce.number().min(2000).max(new Date().getFullYear() + 1),
@@ -44,14 +43,27 @@ type ProjectFormValues = z.infer<typeof projectFormSchema>
 
 interface ProjectFormProps {
   project?: Project | null;
-  onSubmit: (data: Project) => void;
+  onSubmit: (data: Project) => Promise<void>;
   onCancel: () => void;
 }
 
 export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [categories, setCategories] = useLocalStorage<ProjectCategory[]>('projectCategories', defaultCategories);
-  const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
+  const [isPending, startTransition] = useTransition();
+  const [categories, setCategories] = useState<ProjectCategory[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    startTransition(async () => {
+      const [fetchedCategories, fetchedYears] = await Promise.all([
+        getProjectCategories(),
+        getAcademicYears()
+      ]);
+      setCategories(fetchedCategories);
+      setAcademicYears(fetchedYears);
+    })
+  }, []);
 
   const defaultValues: Partial<ProjectFormValues> = project
     ? {
@@ -86,31 +98,40 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
     control: form.control,
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (typeof reader.result === 'string') {
-            appendImage({ url: reader.result });
-          }
-        };
-        reader.readAsDataURL(file);
+      const formData = new FormData();
+      for (const file of files) {
+          formData.append('files', file);
       }
+      
+      startTransition(async () => {
+        try {
+          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+          const data = await res.json();
+          if (data.urls) {
+            data.urls.forEach((url: string) => appendImage({ url }));
+          }
+           toast({ title: 'Success', description: 'Images uploaded successfully.'})
+        } catch (error) {
+           toast({ title: 'Error', description: 'Image upload failed.', variant: 'destructive'})
+        }
+      });
     }
   };
 
   const handleSubmit = (data: ProjectFormValues) => {
-    onSubmit({
-      ...data,
-      id: project?.id || crypto.randomUUID(),
-      students: data.students.map(s => s.name),
-      images: data.images.map(img => img.url),
-      date: format(new Date(), "MMMM d, yyyy"), // Set current date on submit
-      category: data.category as ProjectCategory['name'],
-      academicYear: data.academicYear as AcademicYear['year'],
+    startTransition(async () => {
+        await onSubmit({
+        ...data,
+        id: project?._id,
+        students: data.students.map(s => s.name),
+        images: data.images.map(img => img.url),
+        date: format(new Date(), "MMMM d, yyyy"), // Set current date on submit
+        category: data.category as ProjectCategory['name'],
+        academicYear: data.academicYear as AcademicYear['year'],
+      });
     });
   };
 
@@ -168,7 +189,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                             </FormControl>
                             <SelectContent>
                               {categories.map(cat => (
-                                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                <SelectItem key={cat._id} value={cat.name}>{cat.name}</SelectItem>
                               ))}
                             </SelectContent>
                         </Select>
@@ -216,7 +237,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                         </FormControl>
                         <SelectContent>
                            {academicYears.map(year => (
-                                <SelectItem key={year.id} value={year.year}>{year.year}</SelectItem>
+                                <SelectItem key={year._id} value={year.year}>{year.year}</SelectItem>
                             ))}
                         </SelectContent>
                         </Select>
@@ -336,9 +357,10 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                     variant="outline"
                     className="w-full h-1/2 flex flex-col items-center justify-center"
                     onClick={() => fileInputRef.current?.click()}
+                    disabled={isPending}
                     >
                     <Upload className="h-6 w-6 text-muted-foreground" />
-                    <span className="mt-1 text-xs text-muted-foreground">Upload</span>
+                    <span className="mt-1 text-xs text-muted-foreground">{isPending ? "Uploading..." : "Upload"}</span>
                 </Button>
               </div>
             </div>
@@ -347,8 +369,8 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         </Card>
         
         <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-            <Button type="submit">Save Project</Button>
+            <Button type="button" variant="ghost" onClick={onCancel} disabled={isPending}>Cancel</Button>
+            <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Project"}</Button>
         </div>
       </form>
     </Form>

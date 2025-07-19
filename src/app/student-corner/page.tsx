@@ -1,14 +1,13 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useTransition } from 'react';
 import { ProjectCard } from '@/components/project-card';
 import type { Project, ProjectCategory, AcademicYear } from '@/lib/data';
-import { projects as defaultProjects, projectCategories as defaultCategories, academicYears as defaultAcademicYears } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProjectDetailModal } from '@/components/project-detail-model';
-import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Button } from '@/components/ui/button';
+import { getProjects, getProjectCategories, getAcademicYears } from './data-actions';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -19,19 +18,26 @@ export default function StudentCornerPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [isPending, startTransition] = useTransition();
 
-  const [projects, setProjects] = useLocalStorage<Project[]>('projects', defaultProjects);
-  const [categories, setCategories] = useLocalStorage<ProjectCategory[]>('projectCategories', defaultCategories);
-  const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [categories, setCategories] = useState<ProjectCategory[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
 
-  const [isClient, setIsClient] = useState(false);
   useEffect(() => {
-    setIsClient(true);
+    startTransition(async () => {
+       const [fetchedProjects, fetchedCategories, fetchedYears] = await Promise.all([
+        getProjects(),
+        getProjectCategories(),
+        getAcademicYears()
+      ]);
+      setProjects(fetchedProjects);
+      setCategories(fetchedCategories);
+      setAcademicYears(fetchedYears);
+    })
   }, []);
 
   const { filteredProjects, uniqueClasses, availableCategories, availableAcademicYears } = useMemo(() => {
-    if (!isClient) return { filteredProjects: [], uniqueClasses: [], availableCategories: [], availableAcademicYears: [] };
-
     const uniqueClasses = ['All', ...Array.from(new Set(projects.map(p => p.class)))];
     const availableCategories = ['All', ...categories.map(c => c.name)];
     const availableAcademicYears = ['All', ...academicYears.map(ay => ay.year)];
@@ -51,7 +57,7 @@ export default function StudentCornerPage() {
       availableCategories,
       availableAcademicYears,
     };
-  }, [category, projectClass, academicYear, searchTerm, projects, categories, academicYears, isClient]);
+  }, [category, projectClass, academicYear, searchTerm, projects, categories, academicYears]);
 
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
@@ -61,10 +67,6 @@ export default function StudentCornerPage() {
     setVisibleCount(prevCount => prevCount + ITEMS_PER_PAGE);
   };
   
-  if (!isClient) {
-    return null; 
-  }
-
   return (
     <>
       <div className="container mx-auto px-4 py-8 sm:py-12 max-w-7xl">
@@ -118,11 +120,15 @@ export default function StudentCornerPage() {
           </div>
         </div>
 
-        {filteredProjects.length > 0 ? (
+        {isPending ? (
+          <div className="text-center py-16">
+            <p>Loading projects...</p>
+          </div>
+        ) : filteredProjects.length > 0 ? (
            <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredProjects.slice(0, visibleCount).map(project => (
-                <ProjectCard key={project.id} project={project} onCardClick={() => setSelectedProject(project)} />
+                <ProjectCard key={project._id} project={project} onCardClick={() => setSelectedProject(project)} />
               ))}
             </div>
             {visibleCount < filteredProjects.length && (

@@ -1,9 +1,7 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
-import { useLocalStorage } from '@/hooks/use-local-storage';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,19 +32,36 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-import { projectCategories as defaultCategories, type ProjectCategory } from '@/lib/data';
+import type { ProjectCategory } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
+import { addProjectCategory, deleteProjectCategory, getProjectCategories } from './data-actions';
+
 
 export function ProjectCategoryTable() {
-  const [categories, setCategories] = useLocalStorage<ProjectCategory[]>('projectCategories', defaultCategories);
   const { toast } = useToast();
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const [categories, setCategories] = useState<ProjectCategory[]>([]);
+
+  useEffect(() => {
+    startTransition(async () => {
+      const cats = await getProjectCategories();
+      setCategories(cats);
+    });
+  }, []);
 
   const handleDelete = (categoryId: string) => {
-    setCategories(categories.filter(cat => cat.id !== categoryId));
-    toast({
-        title: "Project Category Deleted",
-        description: "The project category has been successfully deleted.",
+    startTransition(async () => {
+      const result = await deleteProjectCategory(categoryId);
+      if (result.success) {
+        setCategories(categories.filter(cat => cat._id !== categoryId));
+        toast({
+            title: "Project Category Deleted",
+            description: "The project category has been successfully deleted.",
+        });
+      } else {
+        toast({ title: "Error", description: result.message, variant: "destructive" });
+      }
     });
   };
 
@@ -59,11 +74,14 @@ export function ProjectCategoryTable() {
         });
         return;
     }
-    setCategories([...categories, { id: crypto.randomUUID(), name: newCategoryName.trim() as ProjectCategory['name'] }]);
-    setNewCategoryName('');
-    toast({
-        title: "Project Category Added",
-        description: "The new project category has been successfully added.",
+    startTransition(async () => {
+      const newCategory = await addProjectCategory(newCategoryName.trim() as ProjectCategory['name']);
+      setCategories([...categories, newCategory]);
+      setNewCategoryName('');
+      toast({
+          title: "Project Category Added",
+          description: "The new project category has been successfully added.",
+      });
     });
   };
 
@@ -92,7 +110,9 @@ export function ProjectCategoryTable() {
                 />
                 <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleAdd}>Add</AlertDialogAction>
+                <AlertDialogAction onClick={handleAdd} disabled={isPending}>
+                  {isPending ? "Adding..." : "Add"}
+                </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -108,25 +128,29 @@ export function ProjectCategoryTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.map(category => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => handleDelete(category.id)}>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isPending ? (
+                 <TableRow><TableCell colSpan={2} className="text-center">Loading...</TableCell></TableRow>
+              ) : (
+                categories.map(category => (
+                  <TableRow key={category._id}>
+                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleDelete(category._id!)}>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
       </div>

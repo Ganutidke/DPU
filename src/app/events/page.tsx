@@ -1,14 +1,13 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useTransition } from 'react';
 import { EventCard } from '@/components/event-card';
 import type { Event, EventType, AcademicYear } from '@/lib/data';
-import { events as defaultEvents, eventTypes as defaultEventTypes, academicYears as defaultAcademicYears } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EventDetailModal } from '@/components/event-detail-modal';
-import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Button } from '@/components/ui/button';
+import { getEvents, getEventTypes, getAcademicYears } from './data-actions';
 
 const studentYears = ['All', 'Freshman', 'Sophomore', 'Junior', 'Senior'];
 const ITEMS_PER_PAGE = 6;
@@ -20,22 +19,28 @@ export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [isPending, startTransition] = useTransition();
 
-  const [events, setEvents] = useLocalStorage<Event[]>('events', defaultEvents);
-  const [eventTypes, setEventTypes] = useLocalStorage<EventType[]>('eventTypes', defaultEventTypes);
-  const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   
-  const [isClient, setIsClient] = useState(false);
-
   useEffect(() => {
-    setIsClient(true);
+    startTransition(async () => {
+      const [fetchedEvents, fetchedTypes, fetchedYears] = await Promise.all([
+        getEvents(),
+        getEventTypes(),
+        getAcademicYears()
+      ]);
+      setEvents(fetchedEvents);
+      setEventTypes(fetchedTypes);
+      setAcademicYears(fetchedYears);
+    });
   }, []);
 
   const { filteredEvents, availableEventTypes, availableAcademicYears } = useMemo(() => {
     const availableEventTypes = ['All', ...eventTypes.map(e => e.name)];
     const availableAcademicYears = ['All', ...academicYears.map(e => e.year)];
-
-    if (!isClient) return { filteredEvents: [], availableEventTypes, availableAcademicYears };
 
     const filtered = events.filter(event => {
       const typeMatch = eventType === 'All' || event.type === eventType;
@@ -46,7 +51,7 @@ export default function EventsPage() {
     });
 
     return { filteredEvents: filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), availableEventTypes, availableAcademicYears };
-  }, [eventType, studentYear, academicYear, searchTerm, events, eventTypes, academicYears, isClient]);
+  }, [eventType, studentYear, academicYear, searchTerm, events, eventTypes, academicYears]);
 
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
@@ -55,10 +60,6 @@ export default function EventsPage() {
   const loadMore = () => {
     setVisibleCount(prevCount => prevCount + ITEMS_PER_PAGE);
   };
-  
-  if (!isClient) {
-    return null; 
-  }
 
   return (
     <>
@@ -112,12 +113,15 @@ export default function EventsPage() {
             </div>
           </div>
         </div>
-
-        {filteredEvents.length > 0 ? (
+        {isPending ? (
+          <div className="text-center py-16">
+            <p>Loading events...</p>
+          </div>
+        ) : filteredEvents.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredEvents.slice(0, visibleCount).map(event => (
-                <EventCard key={event.id} event={event} onCardClick={() => setSelectedEvent(event)} />
+                <EventCard key={event._id} event={event} onCardClick={() => setSelectedEvent(event)} />
               ))}
             </div>
             {visibleCount < filteredEvents.length && (

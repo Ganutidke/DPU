@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { MoreHorizontal, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { useLocalStorage } from '@/hooks/use-local-storage';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,17 +22,27 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import { events as mockEvents, type Event } from '@/lib/data';
+import type { Event } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
+import { getEvents } from './data-actions';
+import { deleteEvent } from '@/app/admin/events/actions';
 
 const ITEMS_PER_PAGE = 10;
 
 export function EventTable() {
-  const [events, setEvents] = useLocalStorage<Event[]>('events', mockEvents);
+  const [events, setEvents] = useState<Event[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    startTransition(async () => {
+      const fetchedEvents = await getEvents();
+      setEvents(fetchedEvents);
+    });
+  }, []);
 
   const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -41,10 +50,17 @@ export function EventTable() {
   const currentEvents = events.slice(startIndex, endIndex);
 
   const handleDelete = (eventId: string) => {
-    setEvents(events.filter(event => event.id !== eventId));
-    toast({
-        title: "Event Deleted",
-        description: "The event has been successfully deleted.",
+    startTransition(async () => {
+      const result = await deleteEvent(eventId);
+      if (result.success) {
+        setEvents(events.filter(event => event._id !== eventId));
+        toast({
+            title: "Event Deleted",
+            description: "The event has been successfully deleted.",
+        });
+      } else {
+        toast({ title: "Error", description: result.message, variant: "destructive" });
+      }
     });
   };
 
@@ -69,30 +85,33 @@ export function EventTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentEvents.map(event => (
-                <TableRow key={event.id}>
-                  <TableCell className="font-medium">{event.title}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{event.type}</Badge>
-                  </TableCell>
-                  <TableCell>{format(new Date(event.date), 'PPP')}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        {/* <DropdownMenuItem onSelect={() => router.push(`/admin/events/${event.id}/edit`)}>Edit</DropdownMenuItem> */}
-                        <DropdownMenuItem onSelect={() => handleDelete(event.id)}>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isPending ? (
+                <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>
+              ) : (
+                currentEvents.map(event => (
+                  <TableRow key={event._id}>
+                    <TableCell className="font-medium">{event.title}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{event.type}</Badge>
+                    </TableCell>
+                    <TableCell>{format(new Date(event.date), 'PPP')}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleDelete(event._id!)}>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
       </div>

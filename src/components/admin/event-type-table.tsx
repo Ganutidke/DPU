@@ -1,9 +1,7 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
-import { useLocalStorage } from '@/hooks/use-local-storage';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,19 +33,35 @@ import {
 } from "@/components/ui/alert-dialog"
 
 
-import { eventTypes as defaultEventTypes, type EventType } from '@/lib/data';
+import type { EventType } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
+import { addEventType, deleteEventType, getEventTypes } from './data-actions';
 
 export function EventTypeTable() {
-  const [eventTypes, setEventTypes] = useLocalStorage<EventType[]>('eventTypes', defaultEventTypes);
   const { toast } = useToast();
   const [newTypeName, setNewTypeName] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+
+  useEffect(() => {
+    startTransition(async () => {
+      const types = await getEventTypes();
+      setEventTypes(types);
+    })
+  }, []);
 
   const handleDelete = (typeId: string) => {
-    setEventTypes(eventTypes.filter(et => et.id !== typeId));
-    toast({
-        title: "Event Type Deleted",
-        description: "The event type has been successfully deleted.",
+    startTransition(async () => {
+      const result = await deleteEventType(typeId);
+      if (result.success) {
+        setEventTypes(eventTypes.filter(et => et._id !== typeId));
+        toast({
+            title: "Event Type Deleted",
+            description: "The event type has been successfully deleted.",
+        });
+      } else {
+        toast({ title: "Error", description: result.message, variant: "destructive" });
+      }
     });
   };
 
@@ -60,11 +74,14 @@ export function EventTypeTable() {
         });
         return;
     }
-    setEventTypes([...eventTypes, { id: crypto.randomUUID(), name: newTypeName.trim() as EventType['name']}]);
-    setNewTypeName('');
-    toast({
-        title: "Event Type Added",
-        description: "The new event type has been successfully added.",
+    startTransition(async () => {
+      const newEventType = await addEventType(newTypeName.trim() as EventType['name']);
+      setEventTypes([...eventTypes, newEventType]);
+      setNewTypeName('');
+      toast({
+          title: "Event Type Added",
+          description: "The new event type has been successfully added.",
+      });
     });
   };
 
@@ -93,7 +110,9 @@ export function EventTypeTable() {
                 />
                 <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleAdd}>Add</AlertDialogAction>
+                <AlertDialogAction onClick={handleAdd} disabled={isPending}>
+                  {isPending ? 'Adding...' : 'Add'}
+                </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -109,25 +128,29 @@ export function EventTypeTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {eventTypes.map(eventType => (
-                <TableRow key={eventType.id}>
-                  <TableCell className="font-medium">{eventType.name}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => handleDelete(eventType.id)}>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isPending ? (
+                <TableRow><TableCell colSpan={2} className="text-center">Loading...</TableCell></TableRow>
+              ) : (
+                eventTypes.map(eventType => (
+                  <TableRow key={eventType._id}>
+                    <TableCell className="font-medium">{eventType.name}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleDelete(eventType._id!)}>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import Image from 'next/image';
 import { MoreHorizontal, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -23,17 +23,26 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 
-import { projects as mockProjects, type Project } from '@/lib/data';
+import type { Project } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { useLocalStorage } from '@/hooks/use-local-storage';
+import { getProjects } from './data-actions';
+import { deleteProject } from '@/app/admin/projects/actions';
 
 const ITEMS_PER_PAGE = 10;
 
 export function ProjectTable() {
-  const [projects, setProjects] = useLocalStorage<Project[]>('projects', mockProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    startTransition(async () => {
+      const fetchedProjects = await getProjects();
+      setProjects(fetchedProjects);
+    });
+  }, []);
 
   const totalPages = Math.ceil(projects.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -41,10 +50,17 @@ export function ProjectTable() {
   const currentProjects = projects.slice(startIndex, endIndex);
 
   const handleDelete = (projectId: string) => {
-    setProjects(projects.filter(project => project.id !== projectId));
-    toast({
-        title: "Project Deleted",
-        description: "The project has been successfully deleted.",
+    startTransition(async () => {
+      const result = await deleteProject(projectId);
+      if (result.success) {
+        setProjects(projects.filter(project => project._id !== projectId));
+        toast({
+            title: "Project Deleted",
+            description: "The project has been successfully deleted.",
+        });
+      } else {
+        toast({ title: "Error", description: result.message, variant: "destructive" });
+      }
     });
   };
 
@@ -73,41 +89,44 @@ export function ProjectTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentProjects.map(project => (
-                <TableRow key={project.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt="Project image"
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={project.images[0]}
-                      width="64"
-                      data-ai-hint="project thumbnail"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{project.title}</TableCell>
-                  <TableCell>{project.students.join(', ')}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{project.category}</Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">{project.year}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                         {/* <DropdownMenuItem onSelect={() => router.push(`/admin/projects/${project.id}/edit`)}>Edit</DropdownMenuItem> */}
-                        <DropdownMenuItem onSelect={() => handleDelete(project.id)}>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isPending ? (
+                 <TableRow><TableCell colSpan={6} className="text-center">Loading...</TableCell></TableRow>
+              ) : (
+                currentProjects.map(project => (
+                  <TableRow key={project._id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <Image
+                        alt="Project image"
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={project.images[0]}
+                        width="64"
+                        data-ai-hint="project thumbnail"
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{project.title}</TableCell>
+                    <TableCell>{project.students.join(', ')}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{project.category}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{project.year}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleDelete(project._id!)}>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
       </div>

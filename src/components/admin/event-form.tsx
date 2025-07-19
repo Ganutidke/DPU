@@ -1,4 +1,3 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -7,7 +6,7 @@ import { z } from "zod"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon, PlusCircle, X, Upload } from "lucide-react"
 import Image from "next/image"
-import React from "react"
+import React, { useState, useTransition, useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -26,14 +25,14 @@ import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import type { Event, EventType, AcademicYear } from "@/lib/data"
-import { eventTypes as defaultEventTypes, academicYears as defaultAcademicYears } from "@/lib/data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
-import { useLocalStorage } from "@/hooks/use-local-storage"
+import { getEventTypes, getAcademicYears } from "./data-actions"
+import { useToast } from "@/hooks/use-toast"
 
 const eventFormSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters.").max(100),
   date: z.date({ required_error: "A date is required." }),
-  description: z.string().max(1000, "Description is too long.").min(10, "Description must be at least 10 characters."),
+  description: z.string().max(1000, "Description must be 1000 characters or less.").min(10, "Description must be at least 10 characters."),
   type: z.string({required_error: "Please select an event type."}),
   year: z.enum(["All", "Freshman", "Sophomore", "Junior", "Senior"]),
   academicYear: z.string({required_error: "Please select an academic year."}),
@@ -45,15 +44,27 @@ type EventFormValues = z.infer<typeof eventFormSchema>
 
 interface EventFormProps {
   event?: Event;
-  onSubmit: (data: Event) => void;
+  onSubmit: (data: Event) => Promise<void>;
   onCancel: () => void;
 }
 
 export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [eventTypes, setEventTypes] = useLocalStorage<EventType[]>('eventTypes', defaultEventTypes);
-  const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
+  const [isPending, startTransition] = useTransition();
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const { toast } = useToast();
 
+  useEffect(() => {
+    startTransition(async () => {
+      const [fetchedTypes, fetchedYears] = await Promise.all([
+        getEventTypes(),
+        getAcademicYears()
+      ]);
+      setEventTypes(fetchedTypes);
+      setAcademicYears(fetchedYears);
+    });
+  }, []);
 
   const defaultValues: Partial<EventFormValues> = event
     ? { 
@@ -85,32 +96,41 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
     control: form.control,
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (typeof reader.result === 'string') {
-            appendImage({ url: reader.result });
-          }
-        };
-        reader.readAsDataURL(file);
+      const formData = new FormData();
+      for (const file of files) {
+          formData.append('files', file);
       }
+      
+      startTransition(async () => {
+        try {
+          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+          const data = await res.json();
+          if (data.urls) {
+            data.urls.forEach((url: string) => appendImage({ url }));
+          }
+          toast({ title: 'Success', description: 'Images uploaded successfully.'})
+        } catch (error) {
+          toast({ title: 'Error', description: 'Image upload failed.', variant: 'destructive'})
+        }
+      });
     }
   };
 
 
   const handleSubmit = (data: EventFormValues) => {
-    onSubmit({
-      id: event?.id || crypto.randomUUID(),
-      ...data,
-      date: format(data.date, "MMMM d, yyyy"),
-      images: data.images.map(img => img.url),
-      type: data.type as EventType['name'],
-      academicYear: data.academicYear as AcademicYear['year'],
-    });
+    startTransition(async () => {
+      await onSubmit({
+        id: event?._id,
+        ...data,
+        date: format(data.date, "MMMM d, yyyy"),
+        images: data.images.map(img => img.url),
+        type: data.type as EventType['name'],
+        academicYear: data.academicYear as AcademicYear['year'],
+      });
+    })
   };
 
   return (
@@ -203,7 +223,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                       </FormControl>
                       <SelectContent>
                         {eventTypes.map(type => (
-                            <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
+                            <SelectItem key={type._id} value={type.name}>{type.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -245,7 +265,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                       </FormControl>
                       <SelectContent>
                         {academicYears.map(year => (
-                            <SelectItem key={year.id} value={year.year}>{year.year}</SelectItem>
+                            <SelectItem key={year._id} value={year.year}>{year.year}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -321,9 +341,10 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                     variant="outline"
                     className="w-full h-1/2 flex flex-col items-center justify-center"
                     onClick={() => fileInputRef.current?.click()}
+                    disabled={isPending}
                     >
                     <Upload className="h-6 w-6 text-muted-foreground" />
-                    <span className="mt-1 text-xs text-muted-foreground">Upload</span>
+                    <span className="mt-1 text-xs text-muted-foreground">{isPending ? "Uploading..." : "Upload"}</span>
                 </Button>
               </div>
             </div>
@@ -332,8 +353,8 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </Card>
         
         <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-            <Button type="submit">Save Event</Button>
+            <Button type="button" variant="ghost" onClick={onCancel} disabled={isPending}>Cancel</Button>
+            <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Event"}</Button>
         </div>
       </form>
     </Form>

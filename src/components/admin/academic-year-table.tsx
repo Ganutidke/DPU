@@ -1,9 +1,7 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
-import { useLocalStorage } from '@/hooks/use-local-storage';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,19 +32,35 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-import { academicYears as defaultAcademicYears, type AcademicYear } from '@/lib/data';
+import type { AcademicYear } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
+import { addAcademicYear, deleteAcademicYear, getAcademicYears } from './data-actions';
 
 export function AcademicYearTable() {
-  const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
   const { toast } = useToast();
   const [newYear, setNewYear] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  
+  useEffect(() => {
+    startTransition(async () => {
+      const years = await getAcademicYears();
+      setAcademicYears(years);
+    })
+  }, [])
 
   const handleDelete = (yearId: string) => {
-    setAcademicYears(academicYears.filter(ay => ay.id !== yearId));
-    toast({
-        title: "Academic Year Deleted",
-        description: "The academic year has been successfully deleted.",
+    startTransition(async () => {
+      const result = await deleteAcademicYear(yearId);
+      if (result.success) {
+        setAcademicYears(academicYears.filter(ay => ay._id !== yearId));
+        toast({
+            title: "Academic Year Deleted",
+            description: "The academic year has been successfully deleted.",
+        });
+      } else {
+        toast({ title: "Error", description: result.message, variant: "destructive"})
+      }
     });
   };
 
@@ -59,11 +73,14 @@ export function AcademicYearTable() {
         });
         return;
     }
-    setAcademicYears([...academicYears, { id: crypto.randomUUID(), year: newYear as AcademicYear['year']}]);
-    setNewYear('');
-    toast({
-        title: "Academic Year Added",
-        description: "The new academic year has been successfully added.",
+    startTransition(async () => {
+      const newAcademicYear = await addAcademicYear(newYear as AcademicYear['year']);
+      setAcademicYears([...academicYears, newAcademicYear]);
+      setNewYear('');
+      toast({
+          title: "Academic Year Added",
+          description: "The new academic year has been successfully added.",
+      });
     });
   };
 
@@ -108,25 +125,29 @@ export function AcademicYearTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {academicYears.map(academicYear => (
-                <TableRow key={academicYear.id}>
-                  <TableCell className="font-medium">{academicYear.year}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => handleDelete(academicYear.id)}>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isPending ? (
+                <TableRow><TableCell colSpan={2} className="text-center">Loading...</TableCell></TableRow>
+              ) : (
+                academicYears.map(academicYear => (
+                  <TableRow key={academicYear._id}>
+                    <TableCell className="font-medium">{academicYear.year}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleDelete(academicYear._id!)}>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
       </div>

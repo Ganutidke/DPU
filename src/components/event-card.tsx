@@ -12,7 +12,7 @@ export function EventCard({ event, onCardClick }: { event: Event; onCardClick: (
     >
        <div className="relative w-full aspect-video">
         <Image
-          src={event.images[0]}
+          src={event.images[0] || 'https://placehold.co/800x600.png'}
           alt={`Image for ${event.title}`}
           fill
           className="object-cover"
