@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useLocalStorage } from '@/hooks/use-local-storage';
@@ -27,10 +27,18 @@ import { events as mockEvents, type Event } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 
+const ITEMS_PER_PAGE = 10;
+
 export function EventTable() {
   const [events, setEvents] = useLocalStorage<Event[]>('events', mockEvents);
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   const router = useRouter();
+
+  const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentEvents = events.slice(startIndex, endIndex);
 
   const handleDelete = (eventId: string) => {
     setEvents(events.filter(event => event.id !== eventId));
@@ -39,7 +47,6 @@ export function EventTable() {
         description: "The event has been successfully deleted.",
     });
   };
-
 
   return (
     <>
@@ -62,7 +69,7 @@ export function EventTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {events.map(event => (
+              {currentEvents.map(event => (
                 <TableRow key={event.id}>
                   <TableCell className="font-medium">{event.title}</TableCell>
                   <TableCell>
@@ -88,6 +95,29 @@ export function EventTable() {
               ))}
             </TableBody>
           </Table>
+      </div>
+       <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Previous
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages}
+        >
+          Next
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
       </div>
     </>
   );

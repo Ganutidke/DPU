@@ -16,33 +16,36 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
+      <div className="container flex h-24 items-center max-w-7xl">
         <div className="mr-4 flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Icons.logo className="h-6 w-6 text-primary" />
-            <span className="font-bold font-headline text-lg sm:inline-block">
-              CampusConnect
-            </span>
+          <Link href="/" className="mr-6 flex items-center space-x-4">
+            <Icons.logo className="h-16 w-16" />
+            <div className="flex flex-col">
+              <span className="font-bold font-headline text-2xl text-primary sm:inline-block">
+                Dr. D. Y. Patil Arts, Commerce & Science College
+              </span>
+              <span className="text-sm text-muted-foreground">Pimpri, Pune</span>
+            </div>
           </Link>
         </div>
-        <nav className="flex flex-1 items-center justify-between gap-6 text-sm">
-          <div className="flex gap-6">
+        <nav className="flex flex-1 items-center justify-end gap-6 text-sm">
+          <div className="flex items-center gap-6">
              <Link
                 href="/events"
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
+                className="transition-colors hover:text-primary text-foreground/80 font-semibold"
              >
                 Events
              </Link>
              <Link
                 href="/student-corner"
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
+                className="transition-colors hover:text-primary text-foreground/80 font-semibold"
              >
                 Student Corner
              </Link>
              {isLoggedIn && (
                  <Link
                     href="/admin"
-                    className="transition-colors hover:text-foreground/80 text-foreground/60"
+                    className="transition-colors hover:text-primary text-foreground/80 font-semibold"
                  >
                     Dashboard
                  </Link>
@@ -55,7 +58,7 @@ export function Header() {
               </form>
             ) : (
               <Button asChild variant="outline" size="sm">
-                <Link href="/login">Login</Link>
+                <Link href="/login">Admin Login</Link>
               </Button>
             )}
           </div>

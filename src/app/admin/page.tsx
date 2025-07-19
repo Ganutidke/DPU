@@ -8,7 +8,7 @@ import { AcademicYearTable } from '@/components/admin/academic-year-table';
 
 export default function AdminPage() {
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold tracking-tight">Admin Dashboard</h1>
         <p className="text-muted-foreground">Manage your campus events and student projects.</p>
@@ -35,7 +35,7 @@ export default function AdminPage() {
         <TabsContent value="projects">
           <Card>
             <CardHeader>
-              <CardTitle>Projects</CardTitle>
+              <CardTitle>Student Corner</CardTitle>
               <CardDescription>Manage student projects.</CardDescription>
             </CardHeader>
             <CardContent>

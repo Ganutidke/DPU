@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProjectDetailModal } from '@/components/project-detail-model';
 import { useLocalStorage } from '@/hooks/use-local-storage';
+import { Button } from '@/components/ui/button';
+
+const ITEMS_PER_PAGE = 6;
 
 export default function StudentCornerPage() {
   const [category, setCategory] = useState('All');
@@ -15,7 +18,8 @@ export default function StudentCornerPage() {
   const [academicYear, setAcademicYear] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+
   const [projects, setProjects] = useLocalStorage<Project[]>('projects', defaultProjects);
   const [categories, setCategories] = useLocalStorage<ProjectCategory[]>('projectCategories', defaultCategories);
   const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
@@ -42,20 +46,28 @@ export default function StudentCornerPage() {
         return categoryMatch && classMatch && searchMatch && academicYearMatch;
       });
     return {
-      filteredProjects: filtered,
+      filteredProjects: filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
       uniqueClasses,
       availableCategories,
       availableAcademicYears,
     };
   }, [category, projectClass, academicYear, searchTerm, projects, categories, academicYears, isClient]);
 
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [category, projectClass, academicYear, searchTerm]);
+
+  const loadMore = () => {
+    setVisibleCount(prevCount => prevCount + ITEMS_PER_PAGE);
+  };
+  
   if (!isClient) {
-    return null; // Or a loading skeleton
+    return null; 
   }
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 sm:py-12">
+      <div className="container mx-auto px-4 py-8 sm:py-12 max-w-7xl">
         <div className="text-center mb-12">
           <h1 className="font-headline text-4xl font-bold tracking-tight text-primary">
             Student Corner
@@ -107,11 +119,18 @@ export default function StudentCornerPage() {
         </div>
 
         {filteredProjects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map(project => (
-              <ProjectCard key={project.id} project={project} onCardClick={() => setSelectedProject(project)} />
-            ))}
-          </div>
+           <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProjects.slice(0, visibleCount).map(project => (
+                <ProjectCard key={project.id} project={project} onCardClick={() => setSelectedProject(project)} />
+              ))}
+            </div>
+            {visibleCount < filteredProjects.length && (
+              <div className="text-center mt-12">
+                <Button onClick={loadMore} size="lg">Load More</Button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-16 rounded-lg bg-muted/50">
             <h2 className="text-2xl font-semibold font-headline text-foreground/80">No projects found</h2>

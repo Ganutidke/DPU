@@ -5,11 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
   return (
-    <>
+    <div className="max-w-7xl mx-auto">
       <section className="py-20 md:py-32">
         <div className="container mx-auto px-4 text-center">
           <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary sm:text-5xl lg:text-6xl">
-            Welcome to CampusConnect
+            Welcome to Dr. D. Y. Patil College
           </h1>
           <p className="mt-6 text-lg leading-8 text-foreground/80 max-w-2xl mx-auto">
             Your central hub for college events and student achievements. Discover what's happening and celebrate the brilliant work of your peers.
@@ -20,7 +20,7 @@ export default function Home() {
                 Explore Events <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-accent text-accent-foreground hover:bg-accent/90 hover:text-accent-foreground">
+            <Button asChild variant="outline" size="lg" className="border-accent text-accent hover:bg-accent/90 hover:text-accent-foreground">
               <Link href="/student-corner">See Projects</Link>
             </Button>
           </div>
@@ -59,6 +59,6 @@ export default function Home() {
               </div>
           </div>
       </section>
-    </>
+    </div>
   );
 }

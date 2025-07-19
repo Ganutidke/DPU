@@ -22,10 +22,10 @@ export default function NewEventPage() {
     };
 
     return (
-        <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8 max-w-7xl">
             <div className="max-w-2xl mx-auto">
                 <div className="mb-6">
-                    <h1 className="text-3xl font-bold">Add New Event</h1>
+                    <h1 className="text-3xl font-bold font-headline">Add New Event</h1>
                     <p className="text-muted-foreground">Fill in the details for the new event.</p>
                 </div>
                 <EventForm 
