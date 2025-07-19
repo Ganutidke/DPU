@@ -2,6 +2,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EventTable } from '@/components/admin/event-table';
 import { ProjectTable } from '@/components/admin/project-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { EventTypeTable } from '@/components/admin/event-type-table';
+import { ProjectCategoryTable } from '@/components/admin/project-category-table';
+import { AcademicYearTable } from '@/components/admin/academic-year-table';
 
 export default function AdminPage() {
   return (
@@ -11,9 +14,12 @@ export default function AdminPage() {
         <p className="text-muted-foreground">Manage your campus events and student projects.</p>
       </div>
       <Tabs defaultValue="events" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="events">Manage Events</TabsTrigger>
           <TabsTrigger value="projects">Manage Student Corner</TabsTrigger>
+          <TabsTrigger value="event-types">Event Types</TabsTrigger>
+          <TabsTrigger value="project-categories">Project Categories</TabsTrigger>
+          <TabsTrigger value="academic-years">Academic Years</TabsTrigger>
         </TabsList>
         <TabsContent value="events">
           <Card>
@@ -36,6 +42,39 @@ export default function AdminPage() {
               <ProjectTable />
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value="event-types">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Event Types</CardTitle>
+                    <CardDescription>Manage the types of events available.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <EventTypeTable />
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="project-categories">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Project Categories</CardTitle>
+                    <CardDescription>Manage the categories for student projects.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ProjectCategoryTable />
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="academic-years">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Academic Years</CardTitle>
+                    <CardDescription>Manage the academic years for events and projects.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <AcademicYearTable />
+                </CardContent>
+            </Card>
         </TabsContent>
       </Tabs>
     </div>

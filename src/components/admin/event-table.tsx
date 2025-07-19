@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -27,7 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 
 export function EventTable() {
-  const [events, setEvents] = useState<Event[]>(mockEvents);
+  const [events, setEvents] = useLocalStorage<Event[]>('events', mockEvents);
   const { toast } = useToast();
   const router = useRouter();
 

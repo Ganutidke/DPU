@@ -25,16 +25,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import type { Event } from "@/lib/data"
+import type { Event, EventType, AcademicYear } from "@/lib/data"
+import { eventTypes as defaultEventTypes, academicYears as defaultAcademicYears } from "@/lib/data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+import { useLocalStorage } from "@/hooks/use-local-storage"
 
 const eventFormSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters.").max(100),
   date: z.date({ required_error: "A date is required." }),
   description: z.string().max(1000, "Description is too long.").min(10, "Description must be at least 10 characters."),
-  type: z.enum(["Workshop", "Seminar", "Social", "Sports"]),
+  type: z.string({required_error: "Please select an event type."}),
   year: z.enum(["All", "Freshman", "Sophomore", "Junior", "Senior"]),
-  academicYear: z.enum(["2024-2025", "2023-2024"]),
+  academicYear: z.string({required_error: "Please select an academic year."}),
   images: z.array(z.object({ url: z.string().url("Must be a valid URL or data URI.") })).min(1, "At least one image is required."),
   links: z.array(z.object({ title: z.string().min(1), url: z.string().url() })).optional(),
 });
@@ -48,7 +50,10 @@ interface EventFormProps {
 }
 
 export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [eventTypes, setEventTypes] = useLocalStorage<EventType[]>('eventTypes', defaultEventTypes);
+  const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
+
 
   const defaultValues: Partial<EventFormValues> = event
     ? { 
@@ -59,9 +64,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
     : {
         title: "",
         description: "",
-        type: "Workshop",
         year: "All",
-        academicYear: "2024-2025",
         images: [],
         links: [],
       };
@@ -105,6 +108,8 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       ...data,
       date: format(data.date, "MMMM d, yyyy"),
       images: data.images.map(img => img.url),
+      type: data.type as EventType['name'],
+      academicYear: data.academicYear as AcademicYear['year'],
     });
   };
 
@@ -197,10 +202,9 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                         <SelectTrigger><SelectValue placeholder="Select a type" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Workshop">Workshop</SelectItem>
-                        <SelectItem value="Seminar">Seminar</SelectItem>
-                        <SelectItem value="Social">Social</SelectItem>
-                        <SelectItem value="Sports">Sports</SelectItem>
+                        {eventTypes.map(type => (
+                            <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -240,8 +244,9 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                         <SelectTrigger><SelectValue placeholder="Select a year" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="2024-2025">2024-2025</SelectItem>
-                        <SelectItem value="2023-2024">2023-2024</SelectItem>
+                        {academicYears.map(year => (
+                            <SelectItem key={year.id} value={year.year}>{year.year}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

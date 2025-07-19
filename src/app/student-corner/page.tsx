@@ -1,14 +1,13 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ProjectCard } from '@/components/project-card';
-import { projects, Project } from '@/lib/data';
+import type { Project, ProjectCategory, AcademicYear } from '@/lib/data';
+import { projects as defaultProjects, projectCategories as defaultCategories, academicYears as defaultAcademicYears } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProjectDetailModal } from '@/components/project-detail-model';
-
-const categories = ['All', ...Array.from(new Set(projects.map(p => p.category)))];
-const academicYears = ['All', ...Array.from(new Set(projects.map(p => p.academicYear)))];
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 export default function StudentCornerPage() {
   const [category, setCategory] = useState('All');
@@ -16,13 +15,27 @@ export default function StudentCornerPage() {
   const [academicYear, setAcademicYear] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  
+  const [projects, setProjects] = useLocalStorage<Project[]>('projects', defaultProjects);
+  const [categories, setCategories] = useLocalStorage<ProjectCategory[]>('projectCategories', defaultCategories);
+  const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
 
-  const { filteredProjects, uniqueClasses } = useMemo(() => {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const { filteredProjects, uniqueClasses, availableCategories, availableAcademicYears } = useMemo(() => {
+    if (!isClient) return { filteredProjects: [], uniqueClasses: [], availableCategories: [], availableAcademicYears: [] };
+
     const uniqueClasses = ['All', ...Array.from(new Set(projects.map(p => p.class)))];
+    const availableCategories = ['All', ...categories.map(c => c.name)];
+    const availableAcademicYears = ['All', ...academicYears.map(ay => ay.year)];
+
     const filtered = projects.filter(project => {
         const categoryMatch = category === 'All' || project.category === category;
         const classMatch = projectClass === 'All' || project.class === projectClass;
-        const academicYearMatch = academicYear === 'All' || project.academicYear === project.academicYear;
+        const academicYearMatch = academicYear === 'All' || project.academicYear === academicYear;
         const searchMatch = searchTerm === '' || 
                             project.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             project.students.join(' ').toLowerCase().includes(searchTerm.toLowerCase());
@@ -30,9 +43,15 @@ export default function StudentCornerPage() {
       });
     return {
       filteredProjects: filtered,
-      uniqueClasses: uniqueClasses
+      uniqueClasses,
+      availableCategories,
+      availableAcademicYears,
     };
-  }, [category, projectClass, academicYear, searchTerm]);
+  }, [category, projectClass, academicYear, searchTerm, projects, categories, academicYears, isClient]);
+
+  if (!isClient) {
+    return null; // Or a loading skeleton
+  }
 
   return (
     <>
@@ -62,7 +81,7 @@ export default function StudentCornerPage() {
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger><SelectValue placeholder="Filter by category" /></SelectTrigger>
                 <SelectContent>
-                  {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                  {availableCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -80,7 +99,7 @@ export default function StudentCornerPage() {
               <Select value={academicYear} onValueChange={setAcademicYear}>
                 <SelectTrigger><SelectValue placeholder="Filter by academic year" /></SelectTrigger>
                 <SelectContent>
-                  {academicYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+                  {availableAcademicYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

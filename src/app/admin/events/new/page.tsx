@@ -3,13 +3,17 @@ import { EventForm } from "@/components/admin/event-form";
 import { useToast } from "@/hooks/use-toast";
 import type { Event } from "@/lib/data";
 import { useRouter } from "next/navigation";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { events as defaultEvents } from "@/lib/data";
 
 export default function NewEventPage() {
     const router = useRouter();
     const { toast } = useToast();
+    const [events, setEvents] = useLocalStorage<Event[]>('events', defaultEvents);
+
 
     const handleFormSubmit = (data: Event) => {
-        console.log("New event created:", data);
+        setEvents([...events, data]);
         toast({
             title: "Event Created",
             description: "The new event has been successfully created.",

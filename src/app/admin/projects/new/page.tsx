@@ -3,13 +3,16 @@ import { ProjectForm } from "@/components/admin/project-form";
 import { useToast } from "@/hooks/use-toast";
 import type { Project } from "@/lib/data";
 import { useRouter } from "next/navigation";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { projects as defaultProjects } from "@/lib/data";
 
 export default function NewProjectPage() {
     const router = useRouter();
     const { toast } = useToast();
+    const [projects, setProjects] = useLocalStorage<Project[]>('projects', defaultProjects);
 
     const handleFormSubmit = (data: Project) => {
-        console.log("New project created:", data);
+        setProjects([...projects, data]);
         toast({
             title: "Project Created",
             description: "The new project has been successfully created.",

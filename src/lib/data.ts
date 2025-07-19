@@ -1,18 +1,36 @@
 export interface EventType {
     id: string;
-    name: 'Workshop' | 'Seminar' | 'Social' | 'Sports';
+    name: 'Workshop' | 'Seminar' | 'Social' | 'Sports' | string;
 }
 
 export interface ProjectCategory {
     id: string;
-    name: 'Engineering' | 'Arts' | 'Business' | 'Science';
+    name: 'Engineering' | 'Arts' | 'Business' | 'Science' | string;
 }
 
 export interface AcademicYear {
     id: string;
-    year: '2024-2025' | '2023-2024';
+    year: '2024-2025' | '2023-2024' | string;
 }
 
+export const eventTypes: EventType[] = [
+    { id: 'et1', name: 'Workshop' },
+    { id: 'et2', name: 'Seminar' },
+    { id: 'et3', name: 'Social' },
+    { id: 'et4', name: 'Sports' },
+];
+
+export const projectCategories: ProjectCategory[] = [
+    { id: 'pc1', name: 'Engineering' },
+    { id: 'pc2', name: 'Arts' },
+    { id: 'pc3', name: 'Business' },
+    { id: 'pc4', name: 'Science' },
+];
+
+export const academicYears: AcademicYear[] = [
+    { id: 'ay1', year: '2024-2025' },
+    { id: 'ay2', year: '2023-2024' },
+]
 
 export interface Event {
     id: string;

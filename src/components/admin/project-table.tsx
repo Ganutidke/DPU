@@ -25,9 +25,10 @@ import { Badge } from '@/components/ui/badge';
 
 import { projects as mockProjects, type Project } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 export function ProjectTable() {
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
+  const [projects, setProjects] = useLocalStorage<Project[]>('projects', mockProjects);
   const { toast } = useToast();
   const router = useRouter();
 

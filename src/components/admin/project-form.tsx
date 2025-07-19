@@ -20,18 +20,20 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { Project } from "@/lib/data"
+import type { Project, ProjectCategory, AcademicYear } from "@/lib/data"
+import { projectCategories as defaultCategories, academicYears as defaultAcademicYears } from "@/lib/data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { format } from "date-fns"
+import { useLocalStorage } from "@/hooks/use-local-storage"
 
 const projectFormSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters.").max(100),
   students: z.array(z.object({ name: z.string().min(2, "Student name is required.") })).min(1, "At least one student is required."),
   description: z.string().max(1000).min(10),
-  category: z.enum(["Engineering", "Arts", "Business", "Science"]),
+  category: z.string({required_error: "Please select a category."}),
   class: z.string().min(2, "Class/Course is required."),
   year: z.coerce.number().min(2000).max(new Date().getFullYear() + 1),
-  academicYear: z.enum(["2024-2025", "2023-2024"]),
+  academicYear: z.string({required_error: "Please select an academic year."}),
   images: z.array(z.object({ url: z.string().url("Must be a valid URL or data URI.") })).min(1, "At least one image is required."),
   liveLink: z.string().url().optional().or(z.literal('')),
   otherLinks: z.array(z.object({ title: z.string().min(1), url: z.string().url() })).optional(),
@@ -48,6 +50,8 @@ interface ProjectFormProps {
 
 export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [categories, setCategories] = useLocalStorage<ProjectCategory[]>('projectCategories', defaultCategories);
+  const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
 
   const defaultValues: Partial<ProjectFormValues> = project
     ? {
@@ -59,10 +63,8 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         title: "",
         students: [{ name: "" }],
         description: "",
-        category: "Engineering",
         class: "",
         year: new Date().getFullYear(),
-        academicYear: "2024-2025",
         images: [],
         liveLink: "",
         otherLinks: [],
@@ -107,6 +109,8 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       students: data.students.map(s => s.name),
       images: data.images.map(img => img.url),
       date: format(new Date(), "MMMM d, yyyy"), // Set current date on submit
+      category: data.category as ProjectCategory['name'],
+      academicYear: data.academicYear as AcademicYear['year'],
     });
   };
 
@@ -163,10 +167,9 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                            <SelectItem value="Engineering">Engineering</SelectItem>
-                            <SelectItem value="Arts">Arts</SelectItem>
-                            <SelectItem value="Science">Science</SelectItem>
-                            <SelectItem value="Business">Business</SelectItem>
+                              {categories.map(cat => (
+                                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                              ))}
                             </SelectContent>
                         </Select>
                         <FormMessage />
@@ -212,8 +215,9 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                             <SelectTrigger><SelectValue placeholder="Select a year" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="2024-2025">2024-2025</SelectItem>
-                            <SelectItem value="2023-2024">2023-2024</SelectItem>
+                           {academicYears.map(year => (
+                                <SelectItem key={year.id} value={year.year}>{year.year}</SelectItem>
+                            ))}
                         </SelectContent>
                         </Select>
                         <FormMessage />

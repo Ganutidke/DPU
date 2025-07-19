@@ -1,15 +1,15 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { EventCard } from '@/components/event-card';
-import { events, Event } from '@/lib/data';
+import type { Event, EventType, AcademicYear } from '@/lib/data';
+import { events as defaultEvents, eventTypes as defaultEventTypes, academicYears as defaultAcademicYears } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EventDetailModal } from '@/components/event-detail-modal';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
-const eventTypes = ['All', ...Array.from(new Set(events.map(e => e.type)))];
 const studentYears = ['All', 'Freshman', 'Sophomore', 'Junior', 'Senior'];
-const academicYears = ['All', ...Array.from(new Set(events.map(e => e.academicYear)))];
 
 export default function EventsPage() {
   const [eventType, setEventType] = useState('All');
@@ -18,15 +18,36 @@ export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
-  const filteredEvents = useMemo(() => {
-    return events.filter(event => {
+  const [events, setEvents] = useLocalStorage<Event[]>('events', defaultEvents);
+  const [eventTypes, setEventTypes] = useLocalStorage<EventType[]>('eventTypes', defaultEventTypes);
+  const [academicYears, setAcademicYears] = useLocalStorage<AcademicYear[]>('academicYears', defaultAcademicYears);
+  
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const { filteredEvents, availableEventTypes, availableAcademicYears } = useMemo(() => {
+    const availableEventTypes = ['All', ...eventTypes.map(e => e.name)];
+    const availableAcademicYears = ['All', ...academicYears.map(e => e.year)];
+
+    if (!isClient) return { filteredEvents: [], availableEventTypes, availableAcademicYears };
+
+    const filtered = events.filter(event => {
       const typeMatch = eventType === 'All' || event.type === eventType;
       const studentYearMatch = studentYear === 'All' || event.year === studentYear;
       const academicYearMatch = academicYear === 'All' || event.academicYear === academicYear;
       const searchMatch = searchTerm === '' || event.title.toLowerCase().includes(searchTerm.toLowerCase()) || event.description.toLowerCase().includes(searchTerm.toLowerCase());
       return typeMatch && studentYearMatch && academicYearMatch && searchMatch;
     });
-  }, [eventType, studentYear, academicYear, searchTerm]);
+
+    return { filteredEvents: filtered, availableEventTypes, availableAcademicYears };
+  }, [eventType, studentYear, academicYear, searchTerm, events, eventTypes, academicYears, isClient]);
+
+  if (!isClient) {
+    return null; // or a loading skeleton
+  }
 
   return (
     <>
@@ -56,7 +77,7 @@ export default function EventsPage() {
               <Select value={eventType} onValueChange={setEventType}>
                 <SelectTrigger><SelectValue placeholder="Filter by type" /></SelectTrigger>
                 <SelectContent>
-                  {eventTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                  {availableEventTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -74,7 +95,7 @@ export default function EventsPage() {
               <Select value={academicYear} onValueChange={setAcademicYear}>
                 <SelectTrigger><SelectValue placeholder="Filter by academic year" /></SelectTrigger>
                 <SelectContent>
-                  {academicYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+                  {availableAcademicYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
