@@ -17,7 +17,7 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto no-scrollbar">
         <DialogHeader>
           <DialogTitle className="font-headline text-3xl text-primary">{project.title}</DialogTitle>
            <div className="flex items-center gap-2 text-muted-foreground pt-2">
@@ -53,7 +53,7 @@ export function ProjectDetailModal({ project, isOpen, onClose }: ProjectDetailMo
                 <div className="flex items-center gap-2"><Folder className="h-4 w-4 text-primary" /> <strong>Category:</strong> <Badge variant="secondary">{project.category}</Badge></div>
                 <div className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-primary" /> <strong>Class:</strong> {project.class}</div>
                 <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" /> <strong>Date:</strong> {project.date}</div>
-                <div className="flex items-center gap-2"><Tag className="h-4 w-4 text-primary" /> <strong>Year:</strong> {project.year} ({project.academicYear})</div>
+                <div className="flex items-center gap-2"><Tag className="h-4 w-4 text-primary" /> <strong>Year:</strong> {project.academicYear}</div>
             </div>
 
             <div className="flex flex-wrap gap-4">

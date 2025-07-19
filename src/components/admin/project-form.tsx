@@ -3,14 +3,17 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
-import { PlusCircle, X, Upload } from "lucide-react"
+import { Calendar as CalendarIcon, PlusCircle, X, Upload } from "lucide-react"
 import Image from "next/image"
 import React, { useState, useTransition, useEffect } from "react"
+import { useRouter } from "next/navigation"
+
 
 import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,6 +22,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
 import type { Project, ProjectCategory, AcademicYear } from "@/lib/data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { format } from "date-fns"
@@ -28,10 +34,10 @@ import { useToast } from "@/hooks/use-toast"
 const projectFormSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters.").max(100),
   students: z.array(z.object({ name: z.string().min(2, "Student name is required.") })).min(1, "At least one student is required."),
-  description: z.string().max(1000, "Description must be 1000 characters or less.").min(10),
+  description: z.string().max(10000, "Description must be 10000 characters or less.").min(10),
   category: z.string({required_error: "Please select a category."}),
   class: z.string().min(2, "Class/Course is required."),
-  year: z.coerce.number().min(2000).max(new Date().getFullYear() + 1),
+  date: z.date().optional(),
   academicYear: z.string({required_error: "Please select an academic year."}),
   images: z.array(z.object({ url: z.string().url("Must be a valid URL or data URI.") })).min(1, "At least one image is required."),
   liveLink: z.string().url().optional().or(z.literal('')),
@@ -43,11 +49,12 @@ type ProjectFormValues = z.infer<typeof projectFormSchema>
 
 interface ProjectFormProps {
   project?: Project | null;
-  onSubmit: (data: Project) => Promise<void>;
-  onCancel: () => void;
+  onSubmit: (data: any) => Promise<void>;
+  onCancelPath: string;
 }
 
-export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
+export function ProjectForm({ project, onSubmit, onCancelPath }: ProjectFormProps) {
+  const router = useRouter();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
   const [categories, setCategories] = useState<ProjectCategory[]>([]);
@@ -70,13 +77,13 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         ...project,
         students: project.students.map(name => ({ name })),
         images: project.images.map(url => ({ url })),
+        date: project.date ? new Date(project.date) : undefined,
       }
     : {
         title: "",
         students: [{ name: "" }],
         description: "",
         class: "",
-        year: new Date().getFullYear(),
         images: [],
         liveLink: "",
         otherLinks: [],
@@ -123,15 +130,13 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
 
   const handleSubmit = (data: ProjectFormValues) => {
     startTransition(async () => {
-        await onSubmit({
-        ...data,
-        id: project?._id,
-        students: data.students.map(s => s.name),
-        images: data.images.map(img => img.url),
-        date: format(new Date(), "MMMM d, yyyy"), // Set current date on submit
-        category: data.category as ProjectCategory['name'],
-        academicYear: data.academicYear as AcademicYear['year'],
-      });
+        const payload = {
+            ...data,
+            students: data.students.map(s => s.name),
+            images: data.images.map(img => img.url),
+            date: format(data.date || new Date(), "MMMM d, yyyy"),
+        }
+        await onSubmit(payload);
     });
   };
 
@@ -214,17 +219,42 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                     control={form.control}
-                    name="year"
+                    name="date"
                     render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Completion Year</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="2024" {...field} />
-                        </FormControl>
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Completion Date</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP")
+                                ) : (
+                                    <span>Pick a date (optional)</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
                         <FormMessage />
                         </FormItem>
                     )}
-                />
+                    />
                 <FormField
                     control={form.control}
                     name="academicYear"
@@ -309,7 +339,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                        <FormItem className="h-full">
                         <FormControl>
                             <div className="h-full w-full">
-                                <Input {...imageField} placeholder="https://placehold.co/800x600.png" className="h-full" />
+                                <Input {...imageField} value={imageField.value || ''} placeholder="https://placehold.co/800x600.png" className="h-full" />
                                 {imageField.value && (
                                     <Image
                                         src={imageField.value}
@@ -369,8 +399,8 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
         </Card>
         
         <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onCancel} disabled={isPending}>Cancel</Button>
-            <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Project"}</Button>
+            <Button type="button" variant="ghost" onClick={() => router.push(onCancelPath)} disabled={isPending}>Cancel</Button>
+            <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : (project ? "Save Changes" : "Create Project")}</Button>
         </div>
       </form>
     </Form>

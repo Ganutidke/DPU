@@ -64,6 +64,10 @@ export function ProjectTable() {
     });
   };
 
+  const handleEdit = (projectId: string) => {
+    router.push(`/admin/projects/${projectId}/edit`);
+  };
+
   return (
     <>
       <div className='text-right mb-4'>
@@ -109,7 +113,7 @@ export function ProjectTable() {
                     <TableCell>
                       <Badge variant="outline">{project.category}</Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{project.year}</TableCell>
+                    <TableCell className="hidden md:table-cell">{project.academicYear}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -120,6 +124,7 @@ export function ProjectTable() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleEdit(project._id!)}>Edit</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => handleDelete(project._id!)}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

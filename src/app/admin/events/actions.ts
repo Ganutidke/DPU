@@ -13,22 +13,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-async function uploadImage(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = new Uint8Array(arrayBuffer);
-  const result: any = await new Promise((resolve, reject) => {
-    cloudinary.uploader.upload_stream({}, (error, result) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(result);
-    }).end(buffer);
-  });
-  return result.secure_url;
-}
-
-export async function createEvent(data: EventType) {
+export async function createEvent(data: Omit<EventType, '_id' | 'id'>) {
   try {
     await connectToDb();
     const newEvent = new Event(data);
@@ -42,6 +27,35 @@ export async function createEvent(data: EventType) {
   revalidatePath('/events');
   redirect('/admin');
 }
+
+export async function updateEvent(id: string, data: Partial<EventType>) {
+    try {
+        await connectToDb();
+        await Event.findByIdAndUpdate(id, data);
+    } catch (error) {
+        console.error(error);
+        throw new Error('Failed to update event');
+    }
+
+    revalidatePath('/admin');
+    revalidatePath('/events');
+    revalidatePath(`/admin/events/${id}/edit`);
+    redirect('/admin');
+}
+
+
+export async function getEventById(id: string) {
+    try {
+        await connectToDb();
+        const event = await Event.findById(id);
+        if (!event) return null;
+        return JSON.parse(JSON.stringify(event));
+    } catch (error) {
+        console.error("Failed to fetch event:", error);
+        return null;
+    }
+}
+
 
 export async function deleteEvent(eventId: string) {
     try {

@@ -64,6 +64,10 @@ export function EventTable() {
     });
   };
 
+  const handleEdit = (eventId: string) => {
+    router.push(`/admin/events/${eventId}/edit`);
+  };
+
   return (
     <>
       <div className='text-right mb-4'>
@@ -105,6 +109,7 @@ export function EventTable() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleEdit(event._id!)}>Edit</DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => handleDelete(event._id!)}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

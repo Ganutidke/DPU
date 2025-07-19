@@ -7,6 +7,8 @@ import { format } from "date-fns"
 import { Calendar as CalendarIcon, PlusCircle, X, Upload } from "lucide-react"
 import Image from "next/image"
 import React, { useState, useTransition, useEffect } from "react"
+import { useRouter } from "next/navigation"
+
 
 import { Button } from "@/components/ui/button"
 import {
@@ -32,7 +34,7 @@ import { useToast } from "@/hooks/use-toast"
 const eventFormSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters.").max(100),
   date: z.date({ required_error: "A date is required." }),
-  description: z.string().max(1000, "Description must be 1000 characters or less.").min(10, "Description must be at least 10 characters."),
+  description: z.string().max(10000, "Description must be 10,000 characters or less.").min(10, "Description must be at least 10 characters."),
   type: z.string({required_error: "Please select an event type."}),
   year: z.enum(["All", "Freshman", "Sophomore", "Junior", "Senior"]),
   academicYear: z.string({required_error: "Please select an academic year."}),
@@ -44,11 +46,12 @@ type EventFormValues = z.infer<typeof eventFormSchema>
 
 interface EventFormProps {
   event?: Event;
-  onSubmit: (data: Event) => Promise<void>;
-  onCancel: () => void;
+  onSubmit: (data: any) => Promise<void>;
+  onCancelPath: string;
 }
 
-export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
+export function EventForm({ event, onSubmit, onCancelPath }: EventFormProps) {
+  const router = useRouter();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
@@ -122,14 +125,12 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
 
   const handleSubmit = (data: EventFormValues) => {
     startTransition(async () => {
-      await onSubmit({
-        id: event?._id,
+      const payload = {
         ...data,
         date: format(data.date, "MMMM d, yyyy"),
         images: data.images.map(img => img.url),
-        type: data.type as EventType['name'],
-        academicYear: data.academicYear as AcademicYear['year'],
-      });
+      };
+      await onSubmit(payload);
     })
   };
 
@@ -293,7 +294,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                         <FormItem className="h-full">
                             <FormControl>
                                 <div className="h-full w-full">
-                                    <Input {...imageField} placeholder="https://placehold.co/800x600.png" className="h-full" />
+                                    <Input {...imageField} value={imageField.value || ''} placeholder="https://placehold.co/800x600.png" className="h-full" />
                                     {imageField.value && (
                                         <Image
                                             src={imageField.value}
@@ -353,8 +354,8 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
         </Card>
         
         <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={onCancel} disabled={isPending}>Cancel</Button>
-            <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : "Save Event"}</Button>
+            <Button type="button" variant="ghost" onClick={() => router.push(onCancelPath)} disabled={isPending}>Cancel</Button>
+            <Button type="submit" disabled={isPending}>{isPending ? "Saving..." : (event ? "Save Changes" : "Create Event")}</Button>
         </div>
       </form>
     </Form>

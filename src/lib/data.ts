@@ -38,7 +38,6 @@ export interface Event {
     images: string[];
     category: ProjectCategory['name'];
     class: string;
-    year: number;
     academicYear: AcademicYear['year'];
     liveLink?: string;
     otherLinks?: { title: string; url: string }[];

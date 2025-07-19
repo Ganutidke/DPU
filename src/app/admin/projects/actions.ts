@@ -28,6 +28,33 @@ export async function createProject(data: ProjectType) {
   redirect('/admin');
 }
 
+export async function getProjectById(id: string) {
+    try {
+        await connectToDb();
+        const project = await Project.findById(id);
+        if (!project) return null;
+        return JSON.parse(JSON.stringify(project));
+    } catch (error) {
+        console.error("Failed to fetch project:", error);
+        return null;
+    }
+}
+
+export async function updateProject(id: string, data: Partial<ProjectType>) {
+    try {
+        await connectToDb();
+        await Project.findByIdAndUpdate(id, data);
+    } catch (error) {
+        console.error(error);
+        throw new Error('Failed to update project');
+    }
+
+    revalidatePath('/admin');
+    revalidatePath('/student-corner');
+    revalidatePath(`/admin/projects/${id}/edit`);
+    redirect('/admin');
+}
+
 export async function deleteProject(projectId: string) {
     try {
         await connectToDb();
