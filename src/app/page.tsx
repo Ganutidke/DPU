@@ -1,116 +1,64 @@
-'use client';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, BookMarked, CalendarDays } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import { Separator } from '@/components/ui/separator';
-import { mockEvents } from '@/lib/mock-data';
-import type { Event } from '@/lib/types';
-import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-
-export default function EventsPage() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
-
-  const selectedDayEvents = mockEvents.filter(
-    (event) => format(new Date(event.date), 'yyyy-MM-dd') === (date ? format(date, 'yyyy-MM-dd') : '')
-  );
-
-  const upcomingEvents = mockEvents
-    .filter((event) => new Date(event.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 5);
-
-  const getCategoryVariant = (category: string) => {
-    switch (category) {
-      case 'Academic':
-        return 'default';
-      case 'Social':
-        return 'secondary';
-      case 'Workshop':
-        return 'destructive';
-      case 'Career':
-        return 'outline';
-      default:
-        return 'default';
-    }
-  };
-
+export default function Home() {
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-4xl font-bold tracking-tight mb-8">Event Calendar</h1>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardContent className="p-2 md:p-6">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                className="rounded-md w-full"
-                modifiers={{
-                  hasEvent: mockEvents.map((e) => new Date(e.date)),
-                }}
-                modifiersStyles={{
-                  hasEvent: {
-                    fontWeight: 'bold',
-                    textDecoration: 'underline',
-                    textDecorationColor: 'hsl(var(--accent))',
-                    textUnderlineOffset: '2px',
-                  },
-                }}
-              />
-            </CardContent>
-          </Card>
+    <>
+      <section className="py-20 md:py-32">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary sm:text-5xl lg:text-6xl">
+            Welcome to CampusConnect
+          </h1>
+          <p className="mt-6 text-lg leading-8 text-foreground/80 max-w-2xl mx-auto">
+            Your central hub for college events and student achievements. Discover what's happening and celebrate the brilliant work of your peers.
+          </p>
+          <div className="mt-10 flex items-center justify-center gap-x-4">
+            <Button asChild size="lg">
+              <Link href="/events">
+                Explore Events <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-accent text-accent-foreground hover:bg-accent/90 hover:text-accent-foreground">
+              <Link href="/student-corner">See Projects</Link>
+            </Button>
+          </div>
         </div>
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {date ? `Events on ${format(date, 'PPP')}` : 'Select a date'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-48">
-              {selectedDayEvents.length > 0 ? (
-                <ul className="space-y-4">
-                  {selectedDayEvents.map((event) => (
-                    <li key={event.id}>
-                      <h3 className="font-semibold">{event.title}</h3>
-                      <p className="text-sm text-muted-foreground">{event.description}</p>
-                      <Badge variant={getCategoryVariant(event.category)} className="mt-1">{event.category}</Badge>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">No events scheduled for this day.</p>
-              )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+      </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Events</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-64">
-                <ul className="space-y-4">
-                  {upcomingEvents.map((event, index) => (
-                    <li key={event.id}>
-                      <p className="font-semibold">{event.title}</p>
-                      <p className="text-sm text-muted-foreground">{format(new Date(event.date), 'PPP')}</p>
-                      <Badge variant={getCategoryVariant(event.category)} className="mt-1">{event.category}</Badge>
-                      {index < upcomingEvents.length - 1 && <Separator className="my-4" />}
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+      <section className="py-16 bg-muted/50">
+          <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-center">
+                  <Card className="bg-card">
+                      <CardHeader>
+                          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                              <CalendarDays className="h-6 w-6" />
+                          </div>
+                          <CardTitle className="font-headline mt-4">Discover Events</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                          <p className="text-foreground/80">
+                              Find workshops, seminars, and social gatherings. Filter by your interests and academic year to get involved.
+                          </p>
+                      </CardContent>
+                  </Card>
+                  <Card className="bg-card">
+                      <CardHeader>
+                          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                              <BookMarked className="h-6 w-6" />
+                          </div>
+                          <CardTitle className="font-headline mt-4">Student Showcase</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                          <p className="text-foreground/80">
+                              Explore innovative projects from students across all disciplines. See what your peers are creating and achieving.
+                          </p>
+                      </CardContent>
+                  </Card>
+              </div>
+          </div>
+      </section>
+    </>
   );
 }

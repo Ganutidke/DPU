@@ -1,42 +1,43 @@
+import type { Project } from '@/lib/data';
 import Image from 'next/image';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { Project } from '@/lib/types';
+import { User, Folder, BookOpen } from 'lucide-react';
 
-interface ProjectCardProps {
-  project: Project;
-}
-
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, onCardClick }: { project: Project; onCardClick: () => void; }) {
   return (
-    <Card className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+    <Card 
+        className="flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-card cursor-pointer"
+        onClick={onCardClick}
+    >
+      <div className="relative w-full aspect-video">
+        <Image
+          src={project.images[0]}
+          alt={`Image for ${project.title}`}
+          fill
+          className="object-cover"
+          data-ai-hint="student project"
+        />
+      </div>
       <CardHeader>
-        <div className="aspect-[4/3] relative mb-4">
-          <Image
-            src={project.imageUrl}
-            alt={`Image for ${project.title}`}
-            fill
-            className="rounded-t-lg object-cover"
-            data-ai-hint="student project"
-          />
-        </div>
-        <CardTitle>{project.title}</CardTitle>
-        <CardDescription>
-          By {project.student} - {project.year}
+        <CardTitle className="font-headline text-xl">{project.title}</CardTitle>
+        <CardDescription className="flex items-center gap-2 pt-1 text-muted-foreground">
+          <User className="h-4 w-4" />
+          <span>{project.students.join(', ')}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className="text-sm text-muted-foreground">{project.description}</p>
+        <p className="text-foreground/80 line-clamp-3">{project.description}</p>
       </CardContent>
-      <CardFooter>
-        <Badge variant="secondary">{project.category}</Badge>
+      <CardFooter className="flex flex-wrap justify-between gap-2 pt-4">
+        <Badge variant="secondary" className="flex items-center gap-1.5">
+          <Folder className="h-3 w-3" />
+          {project.category}
+        </Badge>
+        <Badge variant="outline" className="flex items-center gap-1.5">
+          <BookOpen className="h-3 w-3" />
+          {project.class} - {project.year}
+        </Badge>
       </CardFooter>
     </Card>
   );

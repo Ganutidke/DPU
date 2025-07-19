@@ -1,13 +1,12 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import { MainNav } from '@/components/main-nav';
+import { Toaster } from "@/components/ui/toaster";
 import { Header } from '@/components/header';
-import { Toaster } from '@/components/ui/toaster';
+import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'CampusConnect',
-  description: 'Your central hub for university events and projects.',
+  description: 'Your central hub for college events and student projects.',
 };
 
 export default function RootLayout({
@@ -19,24 +18,14 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
-          rel="stylesheet"
-        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased">
-        <SidebarProvider>
-          <Sidebar>
-            <MainNav />
-          </Sidebar>
-          <SidebarInset>
-            <Header />
-            <main className="flex-1 p-4 md:p-6 lg:p-8">
-              {children}
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
+      <body className="font-body antialiased min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-grow">
+          {children}
+        </main>
         <Toaster />
       </body>
     </html>
