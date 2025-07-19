@@ -119,7 +119,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle>Project Details</CardTitle>
+            <CardTitle className="capitalize">Project Details</CardTitle>
             <CardDescription>Provide the core information about the project.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -230,7 +230,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
 
         <Card>
             <CardHeader>
-                <CardTitle>Students</CardTitle>
+                <CardTitle className="capitalize">Students</CardTitle>
                 <CardDescription>Add the students who worked on this project.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -274,7 +274,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Project Images</CardTitle>
+            <CardTitle className="capitalize">Project Images</CardTitle>
             <CardDescription>Add images by URL or upload them from your device.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

@@ -20,7 +20,7 @@ export function ProjectCard({ project, onCardClick }: { project: Project; onCard
         />
       </div>
       <CardHeader>
-        <CardTitle className="font-headline text-xl">{project.title}</CardTitle>
+        <CardTitle className="font-headline text-xl capitalize">{project.title}</CardTitle>
         <CardDescription className="flex items-center gap-2 pt-1 text-muted-foreground">
           <User className="h-4 w-4" />
           <span>{project.students.join(', ')}</span>

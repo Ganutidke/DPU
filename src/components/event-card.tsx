@@ -20,7 +20,7 @@ export function EventCard({ event, onCardClick }: { event: Event; onCardClick: (
         />
       </div>
       <CardHeader>
-        <CardTitle className="font-headline text-xl">{event.title}</CardTitle>
+        <CardTitle className="font-headline text-xl capitalize">{event.title}</CardTitle>
         <CardDescription className="flex items-center gap-2 pt-1 text-muted-foreground">
           <Calendar className="h-4 w-4" />
           <span>{event.date}</span>

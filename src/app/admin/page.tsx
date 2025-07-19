@@ -10,7 +10,7 @@ export default function AdminPage() {
   return (
     <div className="container mx-auto py-8 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight">Admin Dashboard</h1>
+        <h1 className="text-4xl font-bold tracking-tight capitalize">Admin Dashboard</h1>
         <p className="text-muted-foreground">Manage your campus events and student projects.</p>
       </div>
       <Tabs defaultValue="events" className="w-full">
@@ -24,7 +24,7 @@ export default function AdminPage() {
         <TabsContent value="events">
           <Card>
             <CardHeader>
-              <CardTitle>Events</CardTitle>
+              <CardTitle className="capitalize">Events</CardTitle>
               <CardDescription>Manage your campus events.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -35,7 +35,7 @@ export default function AdminPage() {
         <TabsContent value="projects">
           <Card>
             <CardHeader>
-              <CardTitle>Student Corner</CardTitle>
+              <CardTitle className="capitalize">Student Corner</CardTitle>
               <CardDescription>Manage student projects.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -46,7 +46,7 @@ export default function AdminPage() {
         <TabsContent value="event-types">
             <Card>
                 <CardHeader>
-                    <CardTitle>Event Types</CardTitle>
+                    <CardTitle className="capitalize">Event Types</CardTitle>
                     <CardDescription>Manage the types of events available.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -57,7 +57,7 @@ export default function AdminPage() {
         <TabsContent value="project-categories">
             <Card>
                 <CardHeader>
-                    <CardTitle>Project Categories</CardTitle>
+                    <CardTitle className="capitalize">Project Categories</CardTitle>
                     <CardDescription>Manage the categories for student projects.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -68,7 +68,7 @@ export default function AdminPage() {
         <TabsContent value="academic-years">
             <Card>
                 <CardHeader>
-                    <CardTitle>Academic Years</CardTitle>
+                    <CardTitle className="capitalize">Academic Years</CardTitle>
                     <CardDescription>Manage the academic years for events and projects.</CardDescription>
                 </CardHeader>
                 <CardContent>

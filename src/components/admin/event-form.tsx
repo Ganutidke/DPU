@@ -118,7 +118,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle>Event Details</CardTitle>
+            <CardTitle className="capitalize">Event Details</CardTitle>
             <CardDescription>Provide the core information about the event.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -259,7 +259,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Event Images</CardTitle>
+            <CardTitle className="capitalize">Event Images</CardTitle>
             <CardDescription>Add images by URL or upload them from your device.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
