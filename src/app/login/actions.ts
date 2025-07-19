@@ -10,9 +10,8 @@ export async function authenticate(
   const username = formData.get('username') as string;
   const password = formData.get('password') as string;
 
-  // In a real app, you would have proper validation and hashing
-  const adminUsername = process.env.ADMIN_USERNAME || 'ganesh';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'ganesh';
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (username === adminUsername && password === adminPassword) {
     cookies().set('session', 'true', { httpOnly: true, path: '/' });
