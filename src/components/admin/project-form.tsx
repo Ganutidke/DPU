@@ -263,7 +263,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                     render={({ field: imageField }) => (
                        <FormItem className="h-full">
                         <FormControl>
-                           <>
+                           <div className="h-full w-full">
                             <Input {...imageField} placeholder="https://placehold.co/800x600.png" className="h-full" />
                             {imageField.value && (
                                 <Image
@@ -274,7 +274,7 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                                     onError={(e) => e.currentTarget.style.display = 'none'}
                                 />
                             )}
-                           </>
+                           </div>
                         </FormControl>
                       </FormItem>
                     )}

@@ -246,7 +246,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                     render={({ field: imageField }) => (
                       <FormItem className="h-full">
                         <FormControl>
-                           <>
+                           <div className="h-full w-full">
                             <Input {...imageField} placeholder="https://placehold.co/800x600.png" className="h-full" />
                             {imageField.value && (
                                 <Image
@@ -257,7 +257,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
                                     onError={(e) => e.currentTarget.style.display = 'none'}
                                 />
                             )}
-                           </>
+                           </div>
                         </FormControl>
                       </FormItem>
                     )}
