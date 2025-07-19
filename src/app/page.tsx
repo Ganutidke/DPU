@@ -2,15 +2,19 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BookMarked, CalendarDays } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Icons } from '@/components/icons';
 
 export default function Home() {
   return (
     <div className="max-w-7xl mx-auto">
       <section className="py-20 md:py-32">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="font-headline text-4xl font-extrabold tracking-tight text-primary sm:text-5xl lg:text-6xl">
-            Welcome to Dr. D. Y. Patil College
-          </h1>
+          <div className="flex flex-col items-center justify-center mb-8">
+            <Icons.logo className="h-24 w-24" />
+             <h1 className="font-headline text-2xl font-bold tracking-tight text-primary sm:text-3xl lg:text-4xl mt-4">
+                Dr. D. Y. Patil Arts, Commerce & Science College
+             </h1>
+          </div>
           <p className="mt-6 text-lg leading-8 text-foreground/80 max-w-2xl mx-auto">
             Your central hub for college events and student achievements. Discover what's happening and celebrate the brilliant work of your peers.
           </p>

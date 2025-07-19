@@ -9,8 +9,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['"PT Sans"', 'sans-serif'],
-        headline: ['"Playfair Display"', 'serif'],
+        body: ['"Merriweather"', 'serif'],
+        headline: ['"Merriweather"', 'serif'],
         code: ['monospace'],
       },
       colors: {

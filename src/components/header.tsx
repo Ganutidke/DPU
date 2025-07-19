@@ -21,12 +21,6 @@ export function Header() {
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-4">
             <Icons.logo className="h-14 w-14" />
-            <div className="flex flex-col">
-              <span className="font-bold font-headline text-xl text-primary sm:inline-block">
-                Dr. D. Y. Patil Arts, Commerce & Science College
-              </span>
-              <span className="text-sm text-muted-foreground">Pimpri, Pune</span>
-            </div>
           </Link>
         </div>
         <nav className="flex flex-1 items-center justify-end gap-4 text-sm font-medium">

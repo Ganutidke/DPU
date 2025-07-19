@@ -20,7 +20,7 @@ export function ActiveLink({ href, children }: ActiveLinkProps) {
       className={cn(
         "px-3 py-1.5 rounded-md transition-colors",
         isActive
-          ? "bg-muted text-primary font-semibold"
+          ? "bg-muted text-foreground font-semibold"
           : "text-foreground/80 hover:bg-muted/50 hover:text-primary"
       )}
     >
