@@ -5,8 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { EventTypeTable } from '@/components/admin/event-type-table';
 import { ProjectCategoryTable } from '@/components/admin/project-category-table';
 import { AcademicYearTable } from '@/components/admin/academic-year-table';
+import { getAcademicYears, getEvents, getEventTypes, getProjectCategories, getProjects } from '@/components/admin/data-actions';
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const [
+    events,
+    projects,
+    eventTypes,
+    projectCategories,
+    academicYears,
+  ] = await Promise.all([
+    getEvents(),
+    getProjects(),
+    getEventTypes(),
+    getProjectCategories(),
+    getAcademicYears(),
+  ]);
+
   return (
     <div className="container mx-auto py-8 max-w-7xl">
       <div className="mb-8">
@@ -28,7 +43,7 @@ export default function AdminPage() {
               <CardDescription>Manage your campus events.</CardDescription>
             </CardHeader>
             <CardContent>
-              <EventTable />
+              <EventTable initialEvents={events} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -39,7 +54,7 @@ export default function AdminPage() {
               <CardDescription>Manage student projects.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ProjectTable />
+              <ProjectTable initialProjects={projects} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -50,7 +65,7 @@ export default function AdminPage() {
                     <CardDescription>Manage the types of events available.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <EventTypeTable />
+                    <EventTypeTable initialEventTypes={eventTypes} />
                 </CardContent>
             </Card>
         </TabsContent>
@@ -61,7 +76,7 @@ export default function AdminPage() {
                     <CardDescription>Manage the categories for student projects.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ProjectCategoryTable />
+                    <ProjectCategoryTable initialProjectCategories={projectCategories} />
                 </CardContent>
             </Card>
         </TabsContent>
@@ -72,7 +87,7 @@ export default function AdminPage() {
                     <CardDescription>Manage the academic years for events and projects.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <AcademicYearTable />
+                    <AcademicYearTable initialAcademicYears={academicYears} />
                 </CardContent>
             </Card>
         </TabsContent>

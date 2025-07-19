@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { MoreHorizontal, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
@@ -25,24 +25,20 @@ import {
 import type { Event } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
-import { getEvents } from './data-actions';
 import { deleteEvent } from '@/app/admin/events/actions';
 
 const ITEMS_PER_PAGE = 10;
 
-export function EventTable() {
-  const [events, setEvents] = useState<Event[]>([]);
+interface EventTableProps {
+  initialEvents: Event[];
+}
+
+export function EventTable({ initialEvents }: EventTableProps) {
+  const [events, setEvents] = useState<Event[]>(initialEvents);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    startTransition(async () => {
-      const fetchedEvents = await getEvents();
-      setEvents(fetchedEvents);
-    });
-  }, []);
 
   const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -89,8 +85,12 @@ export function EventTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isPending ? (
-                <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>
+              {currentEvents.length === 0 && !isPending ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center h-24">No events found.</TableCell>
+                </TableRow>
+              ) : isPending ? (
+                <TableRow><TableCell colSpan={4} className="text-center">Processing...</TableCell></TableRow>
               ) : (
                 currentEvents.map(event => (
                   <TableRow key={event._id}>
@@ -131,13 +131,13 @@ export function EventTable() {
           Previous
         </Button>
         <span className="text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages}
+          Page {currentPage} of {totalPages || 1}
         </span>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages || 1))}
+          disabled={currentPage === totalPages || totalPages === 0}
         >
           Next
           <ChevronRight className="h-4 w-4 ml-1" />

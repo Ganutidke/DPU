@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -34,21 +34,18 @@ import {
 
 import type { AcademicYear } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { addAcademicYear, deleteAcademicYear, getAcademicYears } from './data-actions';
+import { addAcademicYear, deleteAcademicYear } from './data-actions';
 
-export function AcademicYearTable() {
+interface AcademicYearTableProps {
+  initialAcademicYears: AcademicYear[];
+}
+
+export function AcademicYearTable({ initialAcademicYears }: AcademicYearTableProps) {
   const { toast } = useToast();
   const [newYear, setNewYear] = useState('');
   const [isPending, startTransition] = useTransition();
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>(initialAcademicYears);
   
-  useEffect(() => {
-    startTransition(async () => {
-      const years = await getAcademicYears();
-      setAcademicYears(years);
-    })
-  }, [])
-
   const handleDelete = (yearId: string) => {
     startTransition(async () => {
       const result = await deleteAcademicYear(yearId);
@@ -74,13 +71,17 @@ export function AcademicYearTable() {
         return;
     }
     startTransition(async () => {
-      const newAcademicYear = await addAcademicYear(newYear as AcademicYear['year']);
-      setAcademicYears([...academicYears, newAcademicYear]);
-      setNewYear('');
-      toast({
-          title: "Academic Year Added",
-          description: "The new academic year has been successfully added.",
-      });
+      try {
+        const newAcademicYear = await addAcademicYear(newYear);
+        setAcademicYears([...academicYears, newAcademicYear]);
+        setNewYear('');
+        toast({
+            title: "Academic Year Added",
+            description: "The new academic year has been successfully added.",
+        });
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to add academic year.", variant: "destructive" });
+      }
     });
   };
 
@@ -109,7 +110,7 @@ export function AcademicYearTable() {
                 />
                 <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleAdd}>Add</AlertDialogAction>
+                <AlertDialogAction onClick={handleAdd} disabled={isPending}>{isPending ? "Adding..." : "Add"}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -125,8 +126,10 @@ export function AcademicYearTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isPending ? (
-                <TableRow><TableCell colSpan={2} className="text-center">Loading...</TableCell></TableRow>
+              {academicYears.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center">No academic years found.</TableCell>
+                </TableRow>
               ) : (
                 academicYears.map(academicYear => (
                   <TableRow key={academicYear._id}>
@@ -141,7 +144,7 @@ export function AcademicYearTable() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleDelete(academicYear._id!)}>Delete</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleDelete(academicYear._id!)} disabled={isPending}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

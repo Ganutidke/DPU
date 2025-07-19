@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -34,21 +34,17 @@ import {
 
 import type { ProjectCategory } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { addProjectCategory, deleteProjectCategory, getProjectCategories } from './data-actions';
+import { addProjectCategory, deleteProjectCategory } from './data-actions';
 
+interface ProjectCategoryTableProps {
+  initialProjectCategories: ProjectCategory[];
+}
 
-export function ProjectCategoryTable() {
+export function ProjectCategoryTable({ initialProjectCategories }: ProjectCategoryTableProps) {
   const { toast } = useToast();
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isPending, startTransition] = useTransition();
-  const [categories, setCategories] = useState<ProjectCategory[]>([]);
-
-  useEffect(() => {
-    startTransition(async () => {
-      const cats = await getProjectCategories();
-      setCategories(cats);
-    });
-  }, []);
+  const [categories, setCategories] = useState<ProjectCategory[]>(initialProjectCategories);
 
   const handleDelete = (categoryId: string) => {
     startTransition(async () => {
@@ -75,13 +71,17 @@ export function ProjectCategoryTable() {
         return;
     }
     startTransition(async () => {
-      const newCategory = await addProjectCategory(newCategoryName.trim() as ProjectCategory['name']);
-      setCategories([...categories, newCategory]);
-      setNewCategoryName('');
-      toast({
-          title: "Project Category Added",
-          description: "The new project category has been successfully added.",
-      });
+      try {
+        const newCategory = await addProjectCategory(newCategoryName.trim());
+        setCategories([...categories, newCategory]);
+        setNewCategoryName('');
+        toast({
+            title: "Project Category Added",
+            description: "The new project category has been successfully added.",
+        });
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to add project category.", variant: "destructive" });
+      }
     });
   };
 
@@ -128,8 +128,10 @@ export function ProjectCategoryTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isPending ? (
-                 <TableRow><TableCell colSpan={2} className="text-center">Loading...</TableCell></TableRow>
+              {categories.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="h-24 text-center">No project categories found.</TableCell>
+                </TableRow>
               ) : (
                 categories.map(category => (
                   <TableRow key={category._id}>
@@ -144,7 +146,7 @@ export function ProjectCategoryTable() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleDelete(category._id!)}>Delete</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleDelete(category._id!)} disabled={isPending}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

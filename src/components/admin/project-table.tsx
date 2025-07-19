@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import Image from 'next/image';
 import { MoreHorizontal, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -25,24 +25,20 @@ import { Badge } from '@/components/ui/badge';
 
 import type { Project } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { getProjects } from './data-actions';
 import { deleteProject } from '@/app/admin/projects/actions';
 
 const ITEMS_PER_PAGE = 10;
 
-export function ProjectTable() {
-  const [projects, setProjects] = useState<Project[]>([]);
+interface ProjectTableProps {
+  initialProjects: Project[];
+}
+
+export function ProjectTable({ initialProjects }: ProjectTableProps) {
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    startTransition(async () => {
-      const fetchedProjects = await getProjects();
-      setProjects(fetchedProjects);
-    });
-  }, []);
 
   const totalPages = Math.ceil(projects.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -93,8 +89,12 @@ export function ProjectTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isPending ? (
-                 <TableRow><TableCell colSpan={6} className="text-center">Loading...</TableCell></TableRow>
+              {currentProjects.length === 0 && !isPending ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">No projects found.</TableCell>
+                </TableRow>
+              ) : isPending ? (
+                 <TableRow><TableCell colSpan={6} className="text-center">Processing...</TableCell></TableRow>
               ) : (
                 currentProjects.map(project => (
                   <TableRow key={project._id}>
@@ -146,13 +146,13 @@ export function ProjectTable() {
           Previous
         </Button>
         <span className="text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages}
+          Page {currentPage} of {totalPages || 1}
         </span>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages || 1))}
+          disabled={currentPage === totalPages || totalPages === 0}
         >
           Next
           <ChevronRight className="h-4 w-4 ml-1" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -35,20 +35,17 @@ import {
 
 import type { EventType } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { addEventType, deleteEventType, getEventTypes } from './data-actions';
+import { addEventType, deleteEventType } from './data-actions';
 
-export function EventTypeTable() {
+interface EventTypeTableProps {
+  initialEventTypes: EventType[];
+}
+
+export function EventTypeTable({ initialEventTypes }: EventTypeTableProps) {
   const { toast } = useToast();
   const [newTypeName, setNewTypeName] = useState('');
   const [isPending, startTransition] = useTransition();
-  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
-
-  useEffect(() => {
-    startTransition(async () => {
-      const types = await getEventTypes();
-      setEventTypes(types);
-    })
-  }, []);
+  const [eventTypes, setEventTypes] = useState<EventType[]>(initialEventTypes);
 
   const handleDelete = (typeId: string) => {
     startTransition(async () => {
@@ -75,13 +72,17 @@ export function EventTypeTable() {
         return;
     }
     startTransition(async () => {
-      const newEventType = await addEventType(newTypeName.trim() as EventType['name']);
-      setEventTypes([...eventTypes, newEventType]);
-      setNewTypeName('');
-      toast({
-          title: "Event Type Added",
-          description: "The new event type has been successfully added.",
-      });
+      try {
+        const newEventType = await addEventType(newTypeName.trim());
+        setEventTypes([...eventTypes, newEventType]);
+        setNewTypeName('');
+        toast({
+            title: "Event Type Added",
+            description: "The new event type has been successfully added.",
+        });
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to add event type.", variant: "destructive" });
+      }
     });
   };
 
@@ -128,8 +129,10 @@ export function EventTypeTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isPending ? (
-                <TableRow><TableCell colSpan={2} className="text-center">Loading...</TableCell></TableRow>
+              {eventTypes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={2} className="text-center h-24">No event types found.</TableCell>
+                </TableRow>
               ) : (
                 eventTypes.map(eventType => (
                   <TableRow key={eventType._id}>
@@ -144,7 +147,7 @@ export function EventTypeTable() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleDelete(eventType._id!)}>Delete</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleDelete(eventType._id!)} disabled={isPending}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
