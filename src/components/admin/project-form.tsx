@@ -313,11 +313,11 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                 <Button
                     type="button"
                     variant="outline"
-                    className="w-full h-full flex flex-col items-center justify-center"
+                    className="w-full h-1/2 flex flex-col items-center justify-center"
                     onClick={() => appendImage({ url: '' })}
                     >
-                    <PlusCircle className="h-8 w-8 text-muted-foreground" />
-                    <span className="mt-2 text-sm text-muted-foreground">Add by URL</span>
+                    <PlusCircle className="h-6 w-6 text-muted-foreground" />
+                    <span className="mt-1 text-xs text-muted-foreground">Add by URL</span>
                 </Button>
                 <input
                     type="file"
@@ -330,11 +330,11 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
                 <Button
                     type="button"
                     variant="outline"
-                    className="w-full h-full flex flex-col items-center justify-center"
+                    className="w-full h-1/2 flex flex-col items-center justify-center"
                     onClick={() => fileInputRef.current?.click()}
                     >
-                    <Upload className="h-8 w-8 text-muted-foreground" />
-                    <span className="mt-2 text-sm text-muted-foreground">Upload</span>
+                    <Upload className="h-6 w-6 text-muted-foreground" />
+                    <span className="mt-1 text-xs text-muted-foreground">Upload</span>
                 </Button>
               </div>
             </div>
@@ -350,5 +350,3 @@ export function ProjectForm({ project, onSubmit, onCancel }: ProjectFormProps) {
     </Form>
   )
 }
-
-    

@@ -13,7 +13,7 @@ export default function AdminPage() {
       <Tabs defaultValue="events" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="events">Manage Events</TabsTrigger>
-          <TabsTrigger value="projects">Manage Projects</TabsTrigger>
+          <TabsTrigger value="projects">Manage Student Corner</TabsTrigger>
         </TabsList>
         <TabsContent value="events">
           <Card>

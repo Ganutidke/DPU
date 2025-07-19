@@ -1,10 +1,26 @@
+export interface EventType {
+    id: string;
+    name: 'Workshop' | 'Seminar' | 'Social' | 'Sports';
+}
+
+export interface ProjectCategory {
+    id: string;
+    name: 'Engineering' | 'Arts' | 'Business' | 'Science';
+}
+
+export interface AcademicYear {
+    id: string;
+    year: '2024-2025' | '2023-2024';
+}
+
+
 export interface Event {
     id: string;
     title: string;
     date: string;
     description: string;
-    type: 'Workshop' | 'Seminar' | 'Social' | 'Sports';
-    academicYear: '2024-2025' | '2023-2024';
+    type: EventType['name'];
+    academicYear: AcademicYear['year'];
     year: 'All' | 'Freshman' | 'Sophomore' | 'Junior' | 'Senior';
     images: string[];
     links?: { title: string; url: string }[];
@@ -27,10 +43,10 @@ export interface Event {
     students: string[];
     description: string;
     images: string[];
-    category: 'Engineering' | 'Arts' | 'Business' | 'Science';
+    category: ProjectCategory['name'];
     class: string;
     year: number;
-    academicYear: '2024-2025' | '2023-2024';
+    academicYear: AcademicYear['year'];
     liveLink?: string;
     otherLinks?: { title: string; url: string }[];
     date: string;
