@@ -17,7 +17,7 @@ import {
 export function UserNav() {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage src="https://placehold.co/100x100" alt="@shadcn" data-ai-hint="user avatar"/>
