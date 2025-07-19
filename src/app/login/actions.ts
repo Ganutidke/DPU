@@ -16,6 +16,7 @@ export async function authenticate(
 
   if (username === adminUsername && password === adminPassword) {
     cookies().set('session', 'true', { httpOnly: true, path: '/' });
+    // The middleware will handle the redirect to /admin
     redirect('/admin');
   } else {
     return 'Invalid username or password.';
