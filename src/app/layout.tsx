@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: 'Dr. D. Y. Patil Arts, Commerce & Science College',
@@ -25,6 +26,7 @@ export default function RootLayout({
         <Header />
         <main className="flex-grow">
           {children}
+          <Analytics />
         </main>
         <Footer />
         <Toaster />
