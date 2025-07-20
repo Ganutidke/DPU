@@ -23,13 +23,13 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold tracking-tight capitalize font-headline text-primary">Admin Dashboard</h1>
         <p className="text-muted-foreground">Manage your campus events and student projects.</p>
       </div>
       <Tabs defaultValue="events" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="flex w-full overflow-scroll justify-between">
           <TabsTrigger value="events">Manage Events</TabsTrigger>
           <TabsTrigger value="projects">Manage Student Corner</TabsTrigger>
           <TabsTrigger value="event-types">Event Types</TabsTrigger>

@@ -10,8 +10,8 @@ export default function Home() {
       <section className="py-20 md:py-32">
         <div className="container mx-auto px-4 text-center">
           <div className="flex flex-col items-center justify-center mb-8">
-            <Icons.logo className="h-24 w-24" />
-             <h1 className="font-headline text-2xl font-bold tracking-tight text-primary sm:text-3xl lg:text-4xl mt-4">
+            <Icons.logo className="h-56 w-56" />
+             <h1 className="font-headline text-2xl font-bold tracking-tight text-primary sm:text-3xl lg:text-4xl ">
                 Dr. D. Y. Patil Arts, Commerce & Science College
              </h1>
           </div>

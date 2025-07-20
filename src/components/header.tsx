@@ -7,20 +7,20 @@ import { ActiveLink } from './active-link';
 
 async function logout() {
     'use server';
-    cookies().delete('session');
+    (await cookies()).set('session',' ',{maxAge: 0});
     redirect('/login');
 }
 
 
-export function Header() {
-  const isLoggedIn = cookies().get('session');
+export async function Header() {
+  const isLoggedIn = (await cookies()).get('session');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-20 items-center max-w-7xl">
+      <div className="container px-4 flex h-20 items-center max-w-7xl mx-auto">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-4">
-            <Icons.logo className="h-14 w-14" />
+            <Icons.logo className="h-24 w-24" />
           </Link>
         </div>
         <nav className="flex flex-1 items-center justify-end gap-4 text-sm font-medium">
@@ -37,9 +37,7 @@ export function Header() {
                 <Button variant="outline" size="sm">Logout</Button>
               </form>
             ) : (
-              <Button asChild variant="outline" size="sm">
-                <Link href="/login">Admin Login</Link>
-              </Button>
+              <></>
             )}
           </div>
         </nav>

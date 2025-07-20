@@ -27,7 +27,7 @@ export function EventCard({ event, onCardClick }: { event: Event; onCardClick: (
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className="text-foreground/80 line-clamp-3">{event.description}</p>
+        <p className="text-foreground/80 line-clamp-3" style={{ maxWidth: '30ch' }}>{event.description}</p>
       </CardContent>
       <CardFooter className="flex flex-wrap gap-2 pt-4">
          <Badge variant="secondary" className="flex items-center gap-1.5">

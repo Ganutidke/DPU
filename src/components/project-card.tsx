@@ -23,11 +23,11 @@ export function ProjectCard({ project, onCardClick }: { project: Project; onCard
         <CardTitle className="font-headline text-xl capitalize">{project.title}</CardTitle>
         <CardDescription className="flex items-center gap-2 pt-1 text-muted-foreground">
           <User className="h-4 w-4" />
-          <span>{project.students.join(', ')}</span>
+          <span className='capitalize'>{project.students.join(', ')}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className="text-foreground/80 line-clamp-3">{project.description}</p>
+        <p className="text-foreground/80 line-clamp-3" style={{ maxWidth: '30ch' }}>{project.description}</p>
       </CardContent>
       <CardFooter className="flex flex-wrap justify-between gap-2 pt-4">
         <Badge variant="secondary" className="flex items-center gap-1.5">
@@ -36,7 +36,7 @@ export function ProjectCard({ project, onCardClick }: { project: Project; onCard
         </Badge>
         <Badge variant="outline" className="flex items-center gap-1.5">
           <BookOpen className="h-3 w-3" />
-          {project.class} - {project.year}
+          {project.class} - {project.academicYear}
         </Badge>
       </CardFooter>
     </Card>
